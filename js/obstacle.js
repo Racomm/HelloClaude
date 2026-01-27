@@ -1,0 +1,250 @@
+// obstacle.js - 障碍物类
+
+// 障碍物类型定义
+const ObstacleType = {
+    CACTUS_SMALL: 'cactus_small',
+    CACTUS_LARGE: 'cactus_large',
+    CACTUS_GROUP: 'cactus_group',
+    BIRD: 'bird'
+};
+
+// 飞鸟高度定义
+const BirdHeight = {
+    LOW: 'low',    // 需要跳跃
+    MEDIUM: 'medium', // 可以跳跃或下蹲
+    HIGH: 'high'   // 可以直接通过或下蹲
+};
+
+class Obstacle {
+    constructor(type, x, groundY) {
+        this.type = type;
+        this.x = x;
+        this.groundY = groundY;
+
+        // 根据类型设置尺寸和位置
+        this.setupByType();
+
+        // 飞鸟动画
+        this.animFrame = 0;
+        this.animTimer = 0;
+        this.animSpeed = 8;
+    }
+
+    setupByType() {
+        switch (this.type) {
+            case ObstacleType.CACTUS_SMALL:
+                this.width = 20;
+                this.height = 35;
+                this.y = this.groundY - this.height + 2;
+                this.hitbox = { x: 2, y: 0, width: 16, height: 35 };
+                break;
+
+            case ObstacleType.CACTUS_LARGE:
+                this.width = 30;
+                this.height = 50;
+                this.y = this.groundY - this.height + 2;
+                this.hitbox = { x: 3, y: 0, width: 24, height: 50 };
+                break;
+
+            case ObstacleType.CACTUS_GROUP:
+                this.width = 55;
+                this.height = 50;
+                this.y = this.groundY - this.height + 2;
+                this.hitbox = { x: 0, y: 0, width: 55, height: 50 };
+                break;
+
+            case ObstacleType.BIRD:
+                this.width = 53;
+                this.height = 40;
+                this.birdHeight = this.getRandomBirdHeight();
+                this.y = this.getBirdY();
+                this.hitbox = { x: 5, y: 12, width: 43, height: 18 };
+                break;
+        }
+    }
+
+    getRandomBirdHeight() {
+        const rand = Math.random();
+        if (rand < 0.4) return BirdHeight.LOW;
+        if (rand < 0.7) return BirdHeight.MEDIUM;
+        return BirdHeight.HIGH;
+    }
+
+    getBirdY() {
+        switch (this.birdHeight) {
+            case BirdHeight.LOW:
+                return this.groundY - 30; // 低飞 - 必须跳跃
+            case BirdHeight.MEDIUM:
+                return this.groundY - 55; // 中等 - 跳跃或下蹲
+            case BirdHeight.HIGH:
+                return this.groundY - 80; // 高飞 - 直接通过或下蹲
+            default:
+                return this.groundY - 30;
+        }
+    }
+
+    update(speed) {
+        this.x -= speed;
+
+        // 飞鸟动画更新
+        if (this.type === ObstacleType.BIRD) {
+            this.animTimer++;
+            if (this.animTimer >= this.animSpeed) {
+                this.animTimer = 0;
+                this.animFrame = (this.animFrame + 1) % 2;
+            }
+        }
+    }
+
+    draw(ctx) {
+        switch (this.type) {
+            case ObstacleType.CACTUS_SMALL:
+                Sprite.drawCactusSmall(ctx, this.x, this.y);
+                break;
+
+            case ObstacleType.CACTUS_LARGE:
+                Sprite.drawCactusLarge(ctx, this.x, this.y);
+                break;
+
+            case ObstacleType.CACTUS_GROUP:
+                Sprite.drawCactusGroup(ctx, this.x, this.y);
+                break;
+
+            case ObstacleType.BIRD:
+                if (this.animFrame === 0) {
+                    Sprite.drawBirdUp(ctx, this.x, this.y);
+                } else {
+                    Sprite.drawBirdDown(ctx, this.x, this.y);
+                }
+                break;
+        }
+    }
+
+    getHitbox() {
+        return {
+            x: this.x + this.hitbox.x,
+            y: this.y + this.hitbox.y,
+            width: this.hitbox.width,
+            height: this.hitbox.height
+        };
+    }
+
+    isOffScreen() {
+        return this.x < -this.width - 10;
+    }
+
+    // 调试: 绘制碰撞盒
+    drawHitbox(ctx) {
+        const hb = this.getHitbox();
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(hb.x, hb.y, hb.width, hb.height);
+    }
+}
+
+class ObstacleManager {
+    constructor(canvasWidth, groundY) {
+        this.canvasWidth = canvasWidth;
+        this.groundY = groundY;
+        this.obstacles = [];
+
+        // 生成参数
+        this.minGap = 300;
+        this.maxGap = 600;
+        this.lastObstacleX = canvasWidth;
+
+        // 飞鸟出现的最低分数
+        this.birdScoreThreshold = 200;
+        this.currentScore = 0;
+    }
+
+    update(speed, score) {
+        this.currentScore = score;
+
+        // 更新所有障碍物
+        this.obstacles.forEach(obs => obs.update(speed));
+
+        // 移除屏幕外的障碍物
+        this.obstacles = this.obstacles.filter(obs => !obs.isOffScreen());
+
+        // 更新最后障碍物位置
+        if (this.obstacles.length > 0) {
+            this.lastObstacleX = Math.max(...this.obstacles.map(o => o.x));
+        } else {
+            this.lastObstacleX = 0;
+        }
+
+        // 生成新障碍物
+        this.trySpawnObstacle(speed);
+    }
+
+    trySpawnObstacle(speed) {
+        // 根据速度调整间隔
+        const speedFactor = Math.max(0.7, 1 - (speed - 6) * 0.05);
+        const minGap = this.minGap * speedFactor;
+        const maxGap = this.maxGap * speedFactor;
+
+        const gap = minGap + Math.random() * (maxGap - minGap);
+
+        if (this.lastObstacleX < this.canvasWidth - gap) {
+            this.spawnObstacle();
+        }
+    }
+
+    spawnObstacle() {
+        const type = this.getRandomType();
+        const obstacle = new Obstacle(type, this.canvasWidth + 50, this.groundY);
+        this.obstacles.push(obstacle);
+        this.lastObstacleX = this.canvasWidth + 50;
+    }
+
+    getRandomType() {
+        // 如果分数足够高，有机会出现飞鸟
+        const canSpawnBird = this.currentScore >= this.birdScoreThreshold;
+
+        const rand = Math.random();
+
+        if (canSpawnBird && rand < 0.25) {
+            return ObstacleType.BIRD;
+        } else if (rand < 0.5) {
+            return ObstacleType.CACTUS_SMALL;
+        } else if (rand < 0.8) {
+            return ObstacleType.CACTUS_LARGE;
+        } else {
+            return ObstacleType.CACTUS_GROUP;
+        }
+    }
+
+    draw(ctx) {
+        this.obstacles.forEach(obs => obs.draw(ctx));
+    }
+
+    // 碰撞检测
+    checkCollision(dinoHitbox) {
+        for (const obs of this.obstacles) {
+            const obsHitbox = obs.getHitbox();
+            if (this.isColliding(dinoHitbox, obsHitbox)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    isColliding(a, b) {
+        return a.x < b.x + b.width &&
+               a.x + a.width > b.x &&
+               a.y < b.y + b.height &&
+               a.y + a.height > b.y;
+    }
+
+    reset() {
+        this.obstacles = [];
+        this.lastObstacleX = this.canvasWidth;
+        this.currentScore = 0;
+    }
+
+    // 调试: 绘制所有碰撞盒
+    drawHitboxes(ctx) {
+        this.obstacles.forEach(obs => obs.drawHitbox(ctx));
+    }
+}
