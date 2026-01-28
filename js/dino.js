@@ -12,7 +12,7 @@ class Dino {
         this.duckWidth = 60;
         this.duckHeight = 30;
 
-        // 物理参数
+        // 物理参数 (单位: 像素/帧 at 60FPS)
         this.velocityY = 0;
         this.gravity = 0.6;
         this.jumpForce = -12;
@@ -86,13 +86,13 @@ class Dino {
         }
     }
 
-    update() {
+    update(timeFactor) {
         if (this.state === 'dead') return;
 
-        // 重力
+        // 重力 (使用 timeFactor)
         if (!this.isOnGround) {
-            this.velocityY += this.gravity;
-            this.y += this.velocityY;
+            this.velocityY += this.gravity * timeFactor;
+            this.y += this.velocityY * timeFactor;
 
             // 落地检测
             if (this.y >= this.groundY) {
@@ -105,9 +105,9 @@ class Dino {
             }
         }
 
-        // 更新动画
+        // 更新动画 (使用 timeFactor)
         if (this.state === 'running' || this.state === 'ducking') {
-            this.animTimer++;
+            this.animTimer += timeFactor;
             if (this.animTimer >= this.animSpeed) {
                 this.animTimer = 0;
                 this.animFrame = (this.animFrame + 1) % 2;

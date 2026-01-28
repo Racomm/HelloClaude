@@ -8,9 +8,9 @@ class Ground {
         this.speed = 6;
     }
 
-    update(speed) {
+    update(speed, timeFactor) {
         this.speed = speed;
-        this.x -= this.speed;
+        this.x -= this.speed * timeFactor;
 
         // 循环地面
         if (this.x <= -this.canvasWidth) {
@@ -36,9 +36,9 @@ class Cloud {
         this.speed = 1; // 云朵移动较慢
     }
 
-    update(gameSpeed) {
+    update(gameSpeed, timeFactor) {
         // 云朵以游戏速度的 1/6 移动
-        this.x -= this.speed + gameSpeed * 0.15;
+        this.x -= (this.speed + gameSpeed * 0.15) * timeFactor;
     }
 
     draw(ctx) {
@@ -51,17 +51,18 @@ class Cloud {
 }
 
 class CloudManager {
-    constructor(canvasWidth) {
+    constructor(canvasWidth, canvasHeight) {
         this.canvasWidth = canvasWidth;
+        this.canvasHeight = canvasHeight || 200;
         this.clouds = [];
         this.minGap = 200;
         this.maxGap = 400;
         this.nextCloudX = 100;
     }
 
-    update(gameSpeed) {
+    update(gameSpeed, timeFactor) {
         // 更新所有云朵
-        this.clouds.forEach(cloud => cloud.update(gameSpeed));
+        this.clouds.forEach(cloud => cloud.update(gameSpeed, timeFactor));
 
         // 移除屏幕外的云朵
         this.clouds = this.clouds.filter(cloud => !cloud.isOffScreen());
@@ -75,7 +76,9 @@ class CloudManager {
     }
 
     spawnCloud() {
-        const y = 20 + Math.random() * 60; // 随机高度
+        // 在更大的高度范围内生成云朵
+        const maxCloudHeight = Math.min(this.canvasHeight * 0.5, 200);
+        const y = 20 + Math.random() * maxCloudHeight;
         const cloud = new Cloud(this.canvasWidth + 50, y);
         this.clouds.push(cloud);
     }
@@ -90,7 +93,7 @@ class CloudManager {
     }
 }
 
-// 夜间模式装饰 - 星星和月亮
+// 天空装饰 - 星星、月亮和太阳
 class NightSky {
     constructor(canvasWidth, canvasHeight) {
         this.canvasWidth = canvasWidth;
@@ -117,16 +120,16 @@ class NightSky {
         }
     }
 
-    update(gameSpeed) {
+    update(gameSpeed, timeFactor) {
         // 星星和月亮缓慢移动
-        this.moonX -= gameSpeed * 0.05;
+        this.moonX -= gameSpeed * 0.05 * timeFactor;
         if (this.moonX < -40) {
             this.moonX = this.canvasWidth + 40;
         }
 
         this.stars.forEach(star => {
-            star.x -= gameSpeed * 0.03;
-            star.twinkle += 0.1;
+            star.x -= gameSpeed * 0.03 * timeFactor;
+            star.twinkle += 0.1 * timeFactor;
             if (star.x < -5) {
                 star.x = this.canvasWidth + 5;
             }
@@ -134,16 +137,21 @@ class NightSky {
     }
 
     draw(ctx) {
-        // 绘制月亮
-        Sprite.drawMoon(ctx, this.moonX, this.moonY);
+        if (Sprite.isNight) {
+            // 夜间模式：绘制月亮
+            Sprite.drawMoon(ctx, this.moonX, this.moonY);
 
-        // 绘制星星 (带闪烁效果)
-        this.stars.forEach(star => {
-            const alpha = 0.5 + 0.5 * Math.sin(star.twinkle);
-            ctx.globalAlpha = alpha;
-            Sprite.drawStar(ctx, star.x, star.y, star.size);
-        });
-        ctx.globalAlpha = 1;
+            // 绘制星星 (带闪烁效果)
+            this.stars.forEach(star => {
+                const alpha = 0.5 + 0.5 * Math.sin(star.twinkle);
+                ctx.globalAlpha = alpha;
+                Sprite.drawStar(ctx, star.x, star.y, star.size);
+            });
+            ctx.globalAlpha = 1;
+        } else {
+            // 白天模式：绘制太阳
+            Sprite.drawSun(ctx, this.moonX, this.moonY);
+        }
     }
 
     reset() {

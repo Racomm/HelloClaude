@@ -6,20 +6,20 @@ class Game {
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
 
-        // 游戏尺寸
-        this.width = 800;
-        this.height = 200;
+        // 游戏尺寸 (增加视野范围)
+        this.width = 1200;  // 从 800 增加到 1200
+        this.height = 400;  // 从 200 增加到 400
         this.canvas.width = this.width;
         this.canvas.height = this.height;
 
         // 地面位置
-        this.groundY = this.height - 25;
+        this.groundY = this.height - 50;
 
         // 游戏状态
         this.state = 'waiting'; // waiting, running, gameOver
         this.debug = false; // 调试模式
 
-        // 速度和难度
+        // 速度和难度 (单位: 像素/帧 at 60FPS)
         this.baseSpeed = 6;
         this.speed = this.baseSpeed;
         this.maxSpeed = 13;
@@ -48,7 +48,7 @@ class Game {
     initGameObjects() {
         this.dino = new Dino(this.groundY - 47);
         this.ground = new Ground(this.width, this.groundY);
-        this.cloudManager = new CloudManager(this.width);
+        this.cloudManager = new CloudManager(this.width, this.height);
         this.obstacleManager = new ObstacleManager(this.width, this.groundY);
         this.score = new Score();
         this.nightSky = new NightSky(this.width, this.height);
@@ -153,26 +153,26 @@ class Game {
         this.sound.playGameOver();
     }
 
-    update() {
+    update(deltaTime) {
         if (this.state !== 'running') return;
+
+        // 计算时间因子 (标准化到60FPS)
+        const timeFactor = deltaTime / (1000 / 60);
 
         // 更新速度
         if (this.speed < this.maxSpeed) {
-            this.speed += this.speedIncrement;
+            this.speed += this.speedIncrement * timeFactor;
         }
 
         // 更新游戏对象
-        this.dino.update();
-        this.ground.update(this.speed);
-        this.cloudManager.update(this.speed);
-        this.obstacleManager.update(this.speed, this.score.getScore());
-
-        if (this.isNight) {
-            this.nightSky.update(this.speed);
-        }
+        this.dino.update(timeFactor);
+        this.ground.update(this.speed, timeFactor);
+        this.cloudManager.update(this.speed, timeFactor);
+        this.obstacleManager.update(this.speed, timeFactor, this.score.getScore());
+        this.nightSky.update(this.speed, timeFactor);
 
         // 更新分数
-        const milestone = this.score.update();
+        const milestone = this.score.update(timeFactor);
         if (milestone) {
             this.sound.playScore();
         }
@@ -204,14 +204,15 @@ class Game {
     }
 
     draw() {
-        // 清空画布
-        this.ctx.fillStyle = Sprite.getColor('background');
+        // 绘制天空渐变背景
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.height);
+        gradient.addColorStop(0, Sprite.getColor('skyTop'));
+        gradient.addColorStop(1, Sprite.getColor('skyBottom'));
+        this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.width, this.height);
 
-        // 绘制夜空 (如果是夜间模式)
-        if (this.isNight) {
-            this.nightSky.draw(this.ctx);
-        }
+        // 绘制天空装饰 (太阳/月亮/星星)
+        this.nightSky.draw(this.ctx);
 
         // 绘制云朵
         this.cloudManager.draw(this.ctx);
@@ -246,11 +247,14 @@ class Game {
     }
 
     gameLoop(timestamp) {
-        // 计算 delta time (可用于平滑动画)
+        // 计算 delta time (毫秒)
         const deltaTime = timestamp - this.lastTime;
         this.lastTime = timestamp;
 
-        this.update();
+        // 限制 deltaTime 避免极端情况 (例如标签页切换)
+        const clampedDeltaTime = Math.min(deltaTime, 100);
+
+        this.update(clampedDeltaTime);
         this.draw();
 
         requestAnimationFrame(this.gameLoop);

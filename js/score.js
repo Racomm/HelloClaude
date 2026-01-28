@@ -13,13 +13,13 @@ class Score {
         this.flashInterval = 4;  // 闪烁间隔帧数
         this.lastMilestone = 0;
 
-        // 分数递增速度
+        // 分数递增速度 (单位: 每帧 at 60FPS)
         this.scorePerFrame = 0.15;
     }
 
-    update() {
+    update(timeFactor) {
         // 更新分数
-        this.score += this.scorePerFrame;
+        this.score += this.scorePerFrame * timeFactor;
 
         // 平滑显示
         if (this.displayScore < Math.floor(this.score)) {
@@ -36,7 +36,7 @@ class Score {
 
         // 更新闪烁
         if (this.isFlashing) {
-            this.flashTimer++;
+            this.flashTimer += timeFactor;
             if (this.flashTimer >= this.flashDuration) {
                 this.isFlashing = false;
                 this.flashTimer = 0;

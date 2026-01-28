@@ -1,25 +1,33 @@
 // sprite.js - 使用 Canvas 绘制所有游戏精灵
 
 const Sprite = {
-    // 颜色配置
+    // 颜色配置 - 彩色版本
     colors: {
         day: {
-            dino: '#535353',
-            cactus: '#535353',
-            bird: '#535353',
-            ground: '#535353',
-            cloud: '#c4c4c4',
-            text: '#535353',
-            background: '#ffffff'
+            dino: '#52B788',        // 绿色恐龙
+            dinoEye: '#2D3142',     // 深色眼睛
+            cactus: '#2D6A4F',      // 深绿色仙人掌
+            bird: '#D4A574',        // 棕色飞鸟
+            birdBeak: '#E76F51',    // 橙红色鸟嘴
+            ground: '#8B7355',      // 棕色地面
+            cloud: '#FFFFFF',       // 白色云朵
+            text: '#2D3142',        // 深蓝灰文字
+            background: '#87CEEB',  // 天空蓝（将被渐变替换）
+            skyTop: '#4A90E2',      // 天空顶部
+            skyBottom: '#B4D7F1'    // 天空底部
         },
         night: {
-            dino: '#c4c4c4',
-            cactus: '#c4c4c4',
-            bird: '#c4c4c4',
-            ground: '#c4c4c4',
-            cloud: '#555555',
-            text: '#c4c4c4',
-            background: '#1a1a1a'
+            dino: '#6FAADB',        // 浅蓝色恐龙
+            dinoEye: '#FFE5B4',     // 浅色眼睛
+            cactus: '#4A7C59',      // 深绿仙人掌
+            bird: '#B8956A',        // 暗棕色飞鸟
+            birdBeak: '#C17854',    // 暗橙色鸟嘴
+            ground: '#6B5D4F',      // 暗棕色地面
+            cloud: '#F0E68C',       // 浅黄色云朵
+            text: '#E8DCC4',        // 浅色文字
+            background: '#1a1a2e',  // 深夜空
+            skyTop: '#0B1529',      // 夜空顶部
+            skyBottom: '#1E3A5F'    // 夜空底部
         }
     },
 
@@ -40,8 +48,8 @@ const Sprite = {
         // 头部
         ctx.fillRect(x + 25, y, 20, 15);
 
-        // 眼睛 (白色)
-        ctx.fillStyle = this.isNight ? '#1a1a1a' : '#ffffff';
+        // 眼睛
+        ctx.fillStyle = this.getColor('dinoEye');
         ctx.fillRect(x + 37, y + 4, 5, 5);
 
         ctx.fillStyle = color;
@@ -70,7 +78,7 @@ const Sprite = {
         ctx.fillRect(x + 25, y, 20, 15);
 
         // 眼睛
-        ctx.fillStyle = this.isNight ? '#1a1a1a' : '#ffffff';
+        ctx.fillStyle = this.getColor('dinoEye');
         ctx.fillRect(x + 37, y + 4, 5, 5);
 
         ctx.fillStyle = color;
@@ -99,7 +107,7 @@ const Sprite = {
         ctx.fillRect(x + 25, y, 20, 15);
 
         // 眼睛
-        ctx.fillStyle = this.isNight ? '#1a1a1a' : '#ffffff';
+        ctx.fillStyle = this.getColor('dinoEye');
         ctx.fillRect(x + 37, y + 4, 5, 5);
 
         ctx.fillStyle = color;
@@ -133,7 +141,7 @@ const Sprite = {
         ctx.fillRect(x + 35, y + 17, 20, 12);
 
         // 眼睛
-        ctx.fillStyle = this.isNight ? '#1a1a1a' : '#ffffff';
+        ctx.fillStyle = this.getColor('dinoEye');
         ctx.fillRect(x + 47, y + 21, 5, 5);
 
         ctx.fillStyle = color;
@@ -158,7 +166,7 @@ const Sprite = {
         ctx.fillRect(x + 35, y + 17, 20, 12);
 
         // 眼睛
-        ctx.fillStyle = this.isNight ? '#1a1a1a' : '#ffffff';
+        ctx.fillStyle = this.getColor('dinoEye');
         ctx.fillRect(x + 47, y + 21, 5, 5);
 
         ctx.fillStyle = color;
@@ -183,9 +191,8 @@ const Sprite = {
         ctx.fillRect(x + 25, y, 20, 15);
 
         // X眼睛
-        ctx.fillStyle = this.isNight ? '#1a1a1a' : '#ffffff';
+        ctx.fillStyle = this.getColor('dinoEye');
         ctx.fillRect(x + 37, y + 4, 5, 5);
-        ctx.fillStyle = color;
         ctx.fillRect(x + 38, y + 5, 1, 3);
         ctx.fillRect(x + 40, y + 5, 1, 3);
         ctx.fillRect(x + 37, y + 6, 5, 1);
@@ -254,10 +261,11 @@ const Sprite = {
         ctx.fillRect(x + 35, y + 12, 10, 12);
 
         // 嘴
+        ctx.fillStyle = this.getColor('birdBeak');
         ctx.fillRect(x + 45, y + 17, 8, 4);
 
         // 眼睛
-        ctx.fillStyle = this.isNight ? '#1a1a1a' : '#ffffff';
+        ctx.fillStyle = this.getColor('dinoEye');
         ctx.fillRect(x + 40, y + 14, 3, 3);
 
         ctx.fillStyle = color;
@@ -283,10 +291,11 @@ const Sprite = {
         ctx.fillRect(x + 35, y + 12, 10, 12);
 
         // 嘴
+        ctx.fillStyle = this.getColor('birdBeak');
         ctx.fillRect(x + 45, y + 17, 8, 4);
 
         // 眼睛
-        ctx.fillStyle = this.isNight ? '#1a1a1a' : '#ffffff';
+        ctx.fillStyle = this.getColor('dinoEye');
         ctx.fillRect(x + 40, y + 14, 3, 3);
 
         ctx.fillStyle = color;
@@ -335,14 +344,14 @@ const Sprite = {
     // 绘制星星 (夜间模式)
     drawStar(ctx, x, y, size) {
         if (!this.isNight) return;
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = '#FFFACD';  // 柠檬黄色星星
         ctx.fillRect(x, y, size, size);
     },
 
     // 绘制月亮 (夜间模式)
     drawMoon(ctx, x, y) {
         if (!this.isNight) return;
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = '#FFF8DC';  // 淡黄色月亮
 
         // 月亮主体
         ctx.beginPath();
@@ -350,7 +359,7 @@ const Sprite = {
         ctx.fill();
 
         // 月球坑
-        ctx.fillStyle = '#cccccc';
+        ctx.fillStyle = '#F0E68C';
         ctx.beginPath();
         ctx.arc(x + 10, y + 10, 3, 0, Math.PI * 2);
         ctx.fill();
@@ -360,6 +369,32 @@ const Sprite = {
         ctx.beginPath();
         ctx.arc(x + 12, y + 22, 2, 0, Math.PI * 2);
         ctx.fill();
+    },
+
+    // 绘制太阳 (白天模式)
+    drawSun(ctx, x, y) {
+        if (this.isNight) return;
+
+        // 太阳主体
+        ctx.fillStyle = '#FFD700';  // 金黄色
+        ctx.beginPath();
+        ctx.arc(x + 15, y + 15, 18, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 太阳光芒
+        ctx.strokeStyle = '#FFA500';  // 橙色
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 8; i++) {
+            const angle = (Math.PI * 2 * i) / 8;
+            const startX = x + 15 + Math.cos(angle) * 20;
+            const startY = y + 15 + Math.sin(angle) * 20;
+            const endX = x + 15 + Math.cos(angle) * 28;
+            const endY = y + 15 + Math.sin(angle) * 28;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+        }
     },
 
     // 绘制 "GAME OVER" 文字

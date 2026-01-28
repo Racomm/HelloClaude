@@ -83,12 +83,12 @@ class Obstacle {
         }
     }
 
-    update(speed) {
-        this.x -= speed;
+    update(speed, timeFactor) {
+        this.x -= speed * timeFactor;
 
         // 飞鸟动画更新
         if (this.type === ObstacleType.BIRD) {
-            this.animTimer++;
+            this.animTimer += timeFactor;
             if (this.animTimer >= this.animSpeed) {
                 this.animTimer = 0;
                 this.animFrame = (this.animFrame + 1) % 2;
@@ -158,11 +158,11 @@ class ObstacleManager {
         this.currentScore = 0;
     }
 
-    update(speed, score) {
+    update(speed, timeFactor, score) {
         this.currentScore = score;
 
         // 更新所有障碍物
-        this.obstacles.forEach(obs => obs.update(speed));
+        this.obstacles.forEach(obs => obs.update(speed, timeFactor));
 
         // 移除屏幕外的障碍物
         this.obstacles = this.obstacles.filter(obs => !obs.isOffScreen());
