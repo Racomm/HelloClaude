@@ -325,7 +325,8 @@ class Character {
 
     if      (input.left && !input.right) { this.vx = -SPEED; this.facing = -1; }
     else if (input.right && !input.left) { this.vx = SPEED;  this.facing =  1; }
-    else                                   this.vx *= FRIC; // 左右同时 → 不施加水平速度
+    else if (input.left && input.right)    this.vx = this.facing * SPEED; // 左右同时 → 沿上次移动方向
+    else                                   this.vx *= FRIC;
 
     if (input.jump && !this.jumping) { this.vy = JUMP; this.jumping = true; }
 
