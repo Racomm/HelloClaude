@@ -58,10 +58,16 @@ class Game {
         }
         this.speed = this.baseSpeed;
 
-        // 昼夜切换
-        this.isNight = false;
-        this.nightThreshold = 700; // 每700分切换一次
-        this.lastNightToggle = 0;
+        // 生命值系统
+        this.lives = 3;
+        this.maxLives = 5;
+        this.isInvincible = false;
+        this.invincibleTimer = 0;
+        this.invincibleDuration = 2000; // 碰撞后无敌时间 (ms)
+
+        // 金币系统
+        this.coins = 0;
+        this.coinsForLife = 100;
 
         // 初始化游戏对象
         this.initGameObjects();
@@ -83,6 +89,7 @@ class Game {
         this.ground = new Ground(this.width, this.groundY);
         this.cloudManager = new CloudManager(this.width, this.height);
         this.obstacleManager = new ObstacleManager(this.width, this.groundY);
+        this.coinManager = new CoinManager(this.width, this.groundY);
         this.score = new Score();
         this.nightSky = new NightSky(this.width, this.height);
     }
@@ -99,10 +106,10 @@ class Game {
             this.handleTouch(e);
         });
 
-        // 添加触摸结束事件（用于下蹲）
+        // 触摸结束事件：释放下蹲
         this.canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
-            if (this.state === 'running' && this.dino.isDucking) {
+            if (this.state === 'running') {
                 this.dino.duck(false);
             }
         });
@@ -154,11 +161,11 @@ class Game {
         // 获取触摸位置
         const touch = e.touches[0];
         const rect = this.canvas.getBoundingClientRect();
-        const touchY = touch.clientY - rect.top;
-        const canvasDisplayHeight = rect.height;
+        const touchX = touch.clientX - rect.left;
+        const canvasDisplayWidth = rect.width;
 
-        // 如果触摸在下半部分，则下蹲；否则跳跃
-        if (touchY > canvasDisplayHeight * 0.6) {
+        // 左侧下蹲，右侧跳跃（减少误操作）
+        if (touchX < canvasDisplayWidth * 0.5) {
             this.dino.duck(true);
         } else {
             if (this.dino.jump()) {
@@ -237,8 +244,10 @@ class Game {
     restartGame() {
         this.state = 'running';
         this.speed = this.baseSpeed;
-        this.isNight = false;
-        this.lastNightToggle = 0;
+        this.lives = 3;
+        this.coins = 0;
+        this.isInvincible = false;
+        this.invincibleTimer = 0;
         Sprite.isNight = false;
         document.body.classList.remove('night-mode');
 
@@ -246,10 +255,23 @@ class Game {
         this.ground.reset();
         this.cloudManager.reset();
         this.obstacleManager.reset();
+        this.coinManager.reset();
         this.score.reset();
         this.nightSky.reset();
 
         this.dino.start();
+    }
+
+    hitObstacle() {
+        this.lives--;
+        if (this.lives <= 0) {
+            this.gameOver();
+        } else {
+            // 剩余生命时进入无敌状态
+            this.isInvincible = true;
+            this.invincibleTimer = 0;
+            this.sound.playGameOver();
+        }
     }
 
     gameOver() {
@@ -270,12 +292,31 @@ class Game {
             this.speed += this.speedIncrement * timeFactor;
         }
 
+        // 更新无敌计时器
+        if (this.isInvincible) {
+            this.invincibleTimer += deltaTime;
+            if (this.invincibleTimer >= this.invincibleDuration) {
+                this.isInvincible = false;
+                this.invincibleTimer = 0;
+            }
+        }
+
         // 更新游戏对象
         this.dino.update(timeFactor);
         this.ground.update(this.speed, timeFactor);
         this.cloudManager.update(this.speed, timeFactor);
         this.obstacleManager.update(this.speed, timeFactor, this.score.getScore());
-        this.nightSky.update(this.speed, timeFactor);
+        this.coinManager.update(this.speed, timeFactor);
+
+        // 更新天体（日月运动）并响应昼夜切换
+        const nightToggled = this.nightSky.update(this.speed, timeFactor);
+        if (nightToggled) {
+            if (Sprite.isNight) {
+                document.body.classList.add('night-mode');
+            } else {
+                document.body.classList.remove('night-mode');
+            }
+        }
 
         // 更新分数
         const milestone = this.score.update(timeFactor);
@@ -283,33 +324,29 @@ class Game {
             this.sound.playScore();
         }
 
-        // 昼夜切换检查
-        this.checkNightToggle();
-
-        // 碰撞检测
-        if (this.obstacleManager.checkCollision(this.dino.getHitbox())) {
-            this.gameOver();
-        }
-    }
-
-    checkNightToggle() {
-        const currentScore = this.score.getScore();
-        const toggleCount = Math.floor(currentScore / this.nightThreshold);
-
-        if (toggleCount > this.lastNightToggle) {
-            this.lastNightToggle = toggleCount;
-            this.isNight = !this.isNight;
-            Sprite.isNight = this.isNight;
-
-            if (this.isNight) {
-                document.body.classList.add('night-mode');
-            } else {
-                document.body.classList.remove('night-mode');
+        // 金币收集检测
+        const collected = this.coinManager.checkCollection(this.dino.getHitbox());
+        if (collected > 0) {
+            this.sound.playCoin();
+            this.coins += collected;
+            if (this.coins >= this.coinsForLife) {
+                this.coins -= this.coinsForLife;
+                if (this.lives < this.maxLives) {
+                    this.lives++;
+                    this.sound.playExtraLife();
+                }
             }
+        }
+
+        // 碰撞检测（无敌期间跳过）
+        if (!this.isInvincible && this.obstacleManager.checkCollision(this.dino.getHitbox())) {
+            this.hitObstacle();
         }
     }
 
     draw() {
+        const scale = Sprite.uiScale;
+
         // 绘制天空渐变背景
         const gradient = this.ctx.createLinearGradient(0, 0, 0, this.height);
         gradient.addColorStop(0, Sprite.getColor('skyTop'));
@@ -329,12 +366,41 @@ class Game {
         // 绘制障碍物
         this.obstacleManager.draw(this.ctx);
 
-        // 绘制恐龙
+        // 绘制金币
+        this.coinManager.draw(this.ctx);
+
+        // 绘制恐龙（无敌时闪烁）
+        if (this.isInvincible) {
+            const flashOn = Math.floor(this.invincibleTimer / 150) % 2 === 0;
+            this.ctx.globalAlpha = flashOn ? 1.0 : 0.25;
+        }
         this.dino.draw(this.ctx);
+        this.ctx.globalAlpha = 1.0;
 
         // 绘制分数
         if (this.state !== 'waiting') {
             this.score.draw(this.ctx, this.width - 20, 30);
+        }
+
+        // 绘制生命值和金币 UI（等待阶段隐藏）
+        if (this.state !== 'waiting') {
+            const heartSize = Math.floor(14 * scale);
+            const heartGap = Math.floor(4 * scale);
+
+            // 生命值（爱心）
+            for (let i = 0; i < this.maxLives; i++) {
+                Sprite.drawHeart(this.ctx, 15 + i * (heartSize + heartGap), 10, heartSize, i < this.lives);
+            }
+
+            // 金币计数
+            const coinSize = Math.floor(12 * scale);
+            const coinUIY = 10 + heartSize + 6;
+            Sprite.drawCoin(this.ctx, 15, coinUIY, coinSize);
+            this.ctx.fillStyle = Sprite.getColor('text');
+            const coinFontSize = Math.floor(13 * scale);
+            this.ctx.font = `bold ${coinFontSize}px Courier New`;
+            this.ctx.textAlign = 'left';
+            this.ctx.fillText(`${this.coins}/${this.coinsForLife}`, 15 + coinSize + 4, coinUIY + coinSize - 1);
         }
 
         // 绘制状态相关 UI
@@ -349,6 +415,7 @@ class Game {
         if (this.debug) {
             this.dino.drawHitbox(this.ctx);
             this.obstacleManager.drawHitboxes(this.ctx);
+            if (this.coinManager.drawHitboxes) this.coinManager.drawHitboxes(this.ctx);
         }
     }
 

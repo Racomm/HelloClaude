@@ -248,3 +248,108 @@ class ObstacleManager {
         this.obstacles.forEach(obs => obs.drawHitbox(ctx));
     }
 }
+
+// ---- 金币系统 ----
+
+class Coin {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.size = 16;
+        this.collected = false;
+        this.animTimer = 0;
+    }
+
+    update(speed, timeFactor) {
+        this.x -= speed * timeFactor;
+        this.animTimer += timeFactor;
+    }
+
+    draw(ctx) {
+        if (this.collected) return;
+        // 轻微上下漂浮
+        const bob = Math.sin(this.animTimer * 0.12) * 3;
+        Sprite.drawCoin(ctx, this.x, this.y + bob, this.size);
+    }
+
+    getHitbox() {
+        return { x: this.x - 2, y: this.y - 4, width: this.size + 4, height: this.size + 8 };
+    }
+
+    isOffScreen() {
+        return this.x < -this.size - 10;
+    }
+}
+
+class CoinManager {
+    constructor(canvasWidth, groundY) {
+        this.canvasWidth = canvasWidth;
+        this.groundY = groundY;
+        this.coins = [];
+        this.nextSpawnGap = 300;
+        this.lastCoinX = 0;
+        this.minGap = 180;
+        this.maxGap = 350;
+    }
+
+    update(speed, timeFactor) {
+        this.coins.forEach(c => c.update(speed, timeFactor));
+        this.coins = this.coins.filter(c => !c.isOffScreen() && !c.collected);
+
+        const lastX = this.coins.length > 0
+            ? Math.max(...this.coins.map(c => c.x))
+            : 0;
+
+        if (lastX < this.canvasWidth - this.nextSpawnGap) {
+            this.spawnCoin();
+            this.nextSpawnGap = this.minGap + Math.random() * (this.maxGap - this.minGap);
+        }
+    }
+
+    spawnCoin() {
+        const rand = Math.random();
+        let y;
+        if (rand < 0.5) {
+            y = this.groundY - 22;       // 地面层：奔跑即可收集
+        } else if (rand < 0.8) {
+            y = this.groundY - 58;       // 低空：小跳可收集
+        } else {
+            y = this.groundY - 92;       // 高空：需完整跳跃
+        }
+        this.coins.push(new Coin(this.canvasWidth + 30, y));
+    }
+
+    checkCollection(dinoHitbox) {
+        let count = 0;
+        for (const coin of this.coins) {
+            if (coin.collected) continue;
+            const ch = coin.getHitbox();
+            if (dinoHitbox.x < ch.x + ch.width &&
+                dinoHitbox.x + dinoHitbox.width > ch.x &&
+                dinoHitbox.y < ch.y + ch.height &&
+                dinoHitbox.y + dinoHitbox.height > ch.y) {
+                coin.collected = true;
+                count++;
+            }
+        }
+        return count;
+    }
+
+    draw(ctx) {
+        this.coins.forEach(c => c.draw(ctx));
+    }
+
+    reset() {
+        this.coins = [];
+        this.nextSpawnGap = 300;
+    }
+
+    drawHitboxes(ctx) {
+        this.coins.forEach(c => {
+            const h = c.getHitbox();
+            ctx.strokeStyle = 'gold';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(h.x, h.y, h.width, h.height);
+        });
+    }
+}

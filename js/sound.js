@@ -93,6 +93,51 @@ class Sound {
         oscillator.stop(this.audioContext.currentTime + 0.3);
     }
 
+    // 金币收集音效 - 清脆短促高音
+    playCoin() {
+        if (!this.enabled || !this.audioContext) return;
+
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, this.audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(1320, this.audioContext.currentTime + 0.07);
+
+        gainNode.gain.setValueAtTime(0.07, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.07);
+
+        oscillator.start(this.audioContext.currentTime);
+        oscillator.stop(this.audioContext.currentTime + 0.07);
+    }
+
+    // 获得额外生命音效 - 上升四音阶
+    playExtraLife() {
+        if (!this.enabled || !this.audioContext) return;
+
+        const notes = [523, 659, 784, 1047]; // C5 E5 G5 C6
+        notes.forEach((freq, i) => {
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+
+            oscillator.type = 'square';
+            const t = this.audioContext.currentTime + i * 0.11;
+            oscillator.frequency.setValueAtTime(freq, t);
+
+            gainNode.gain.setValueAtTime(0.1, t);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+
+            oscillator.start(t);
+            oscillator.stop(t + 0.1);
+        });
+    }
+
     toggle() {
         this.enabled = !this.enabled;
         return this.enabled;

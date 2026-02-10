@@ -121,10 +121,15 @@ class NightSky {
     }
 
     update(gameSpeed, timeFactor) {
-        // 星星和月亮缓慢移动
+        // 天体（太阳或月亮）缓慢向左移动
         this.moonX -= gameSpeed * 0.05 * timeFactor;
+
+        // 天体离开左侧屏幕时自动切换白天/夜晚，形成自然日月交替
+        let nightToggled = false;
         if (this.moonX < -40) {
             this.moonX = this.canvasWidth + 40;
+            Sprite.isNight = !Sprite.isNight;
+            nightToggled = true;
         }
 
         this.stars.forEach(star => {
@@ -134,6 +139,8 @@ class NightSky {
                 star.x = this.canvasWidth + 5;
             }
         });
+
+        return nightToggled;
     }
 
     draw(ctx) {

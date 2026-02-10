@@ -447,5 +447,46 @@ const Sprite = {
             ? 'Tap to Start'
             : 'Press SPACE or Click to Start';
         ctx.fillText(text, x, y);
+    },
+
+    // 绘制金币
+    drawCoin(ctx, x, y, size) {
+        const s = size || 16;
+        const cx = x + s / 2;
+        const cy = y + s / 2;
+        const r = s / 2;
+
+        // 外圈金色
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 内圈橙色
+        ctx.fillStyle = '#FFA500';
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.62, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 高光
+        ctx.fillStyle = '#FFFF99';
+        ctx.beginPath();
+        ctx.arc(cx - r * 0.22, cy - r * 0.22, r * 0.28, 0, Math.PI * 2);
+        ctx.fill();
+    },
+
+    // 绘制爱心（生命值）
+    drawHeart(ctx, x, y, size, filled) {
+        const s = size || 14;
+        ctx.fillStyle = filled ? '#FF5252' : (this.isNight ? '#3A3A5A' : '#CCCCCC');
+
+        ctx.beginPath();
+        ctx.moveTo(x + s * 0.5, y + s * 0.3);
+        ctx.bezierCurveTo(x + s * 0.5, y + s * 0.1,  x,          y + s * 0.1, x,          y + s * 0.4);
+        ctx.bezierCurveTo(x,          y + s * 0.65, x + s * 0.5, y + s * 0.9, x + s * 0.5, y + s);
+        ctx.bezierCurveTo(x + s * 0.5, y + s * 0.9, x + s,       y + s * 0.65, x + s,       y + s * 0.4);
+        ctx.bezierCurveTo(x + s,       y + s * 0.1,  x + s * 0.5, y + s * 0.1, x + s * 0.5, y + s * 0.3);
+        ctx.closePath();
+        ctx.fill();
     }
 };
