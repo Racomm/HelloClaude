@@ -58,8 +58,12 @@ class Score {
 
         if (!shouldShow) return;
 
+        // 使用动态字体大小
+        const fontSize = Math.floor(18 * Sprite.uiScale);
+        const spacing = Math.floor(80 * Sprite.uiScale);
+
         ctx.fillStyle = Sprite.getColor('text');
-        ctx.font = 'bold 18px Courier New';
+        ctx.font = `bold ${fontSize}px Courier New`;
         ctx.textAlign = 'right';
 
         // 格式化分数 (5位数，前面补0)
@@ -72,7 +76,7 @@ class Score {
         if (this.highScore > 0) {
             ctx.fillStyle = Sprite.getColor('text');
             ctx.globalAlpha = 0.7;
-            ctx.fillText('HI ' + String(this.highScore).padStart(5, '0'), x - 80, y);
+            ctx.fillText('HI ' + String(this.highScore).padStart(5, '0'), x - spacing, y);
             ctx.globalAlpha = 1;
         }
     }

@@ -1,6 +1,15 @@
 // sprite.js - 使用 Canvas 绘制所有游戏精灵
 
 const Sprite = {
+    // UI 缩放比例（基于画布宽度）
+    uiScale: 1,
+
+    // 设置 UI 缩放比例
+    setUIScale(canvasWidth) {
+        // 基准宽度 1200px，缩放范围 0.7-1.0
+        this.uiScale = Math.max(0.7, Math.min(1, canvasWidth / 1200));
+    },
+
     // 颜色配置 - 彩色版本
     colors: {
         day: {
@@ -400,7 +409,8 @@ const Sprite = {
     // 绘制 "GAME OVER" 文字
     drawGameOver(ctx, x, y) {
         ctx.fillStyle = this.getColor('text');
-        ctx.font = 'bold 24px Courier New';
+        const fontSize = Math.floor(24 * this.uiScale);
+        ctx.font = `bold ${fontSize}px Courier New`;
         ctx.textAlign = 'center';
         ctx.fillText('GAME OVER', x, y);
     },
@@ -408,20 +418,21 @@ const Sprite = {
     // 绘制重新开始按钮
     drawRestartButton(ctx, x, y) {
         const color = this.getColor('text');
+        const scale = this.uiScale;
         ctx.strokeStyle = color;
         ctx.fillStyle = color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 * scale;
 
         // 圆形箭头
         ctx.beginPath();
-        ctx.arc(x, y, 15, 0.5, Math.PI * 1.7);
+        ctx.arc(x, y, 15 * scale, 0.5, Math.PI * 1.7);
         ctx.stroke();
 
         // 箭头尖
         ctx.beginPath();
-        ctx.moveTo(x + 10, y - 12);
-        ctx.lineTo(x + 15, y - 5);
-        ctx.lineTo(x + 5, y - 5);
+        ctx.moveTo(x + 10 * scale, y - 12 * scale);
+        ctx.lineTo(x + 15 * scale, y - 5 * scale);
+        ctx.lineTo(x + 5 * scale, y - 5 * scale);
         ctx.closePath();
         ctx.fill();
     },
@@ -429,8 +440,12 @@ const Sprite = {
     // 绘制 "Press Space to Start" 提示
     drawStartHint(ctx, x, y) {
         ctx.fillStyle = this.getColor('text');
-        ctx.font = '16px Courier New';
+        const fontSize = Math.floor(16 * this.uiScale);
+        ctx.font = `${fontSize}px Courier New`;
         ctx.textAlign = 'center';
-        ctx.fillText('Press SPACE or Click to Start', x, y);
+        const text = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+            ? 'Tap to Start'
+            : 'Press SPACE or Click to Start';
+        ctx.fillText(text, x, y);
     }
 };

@@ -9,9 +9,18 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    /* 支持 iPhone 安全区域 */
+    min-height: 100svh;
     background-color: #f7f7f7;
     font-family: 'Courier New', monospace;
     overflow: hidden;
+    /* 优化移动端触摸 */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    /* 安全区域内边距 */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 .game-container {
@@ -34,15 +43,98 @@ body {
     text-align: center;
 }
 
+/* 屏幕方向提示 */
+#orientation-warning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+}
+
+.orientation-content {
+    padding: 20px;
+}
+
+.rotate-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    animation: rotate 2s ease-in-out infinite;
+}
+
+@keyframes rotate {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(90deg); }
+}
+
+.orientation-hint {
+    font-size: 12px;
+    color: #999;
+    margin-top: 10px;
+}
+
+/* 控制提示文本显示 */
+.mobile-controls {
+    display: none;
+}
+
 /* 移动端适配 */
-@media (max-width: 600px) {
+@media (max-width: 932px) {
+    body {
+        padding: 0;
+    }
+
     #game-canvas {
         border: none;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .game-info {
+        font-size: 11px;
+        padding: 5px 15px;
+    }
+
+    .desktop-controls {
+        display: none;
+    }
+
+    .mobile-controls {
+        display: block;
+    }
+}
+
+/* iPhone 15 Plus 特定优化 (横屏) */
+@media (max-width: 932px) and (orientation: landscape) {
+    body {
+        padding: 0;
+    }
+
+    .game-container {
+        gap: 10px;
+    }
+
+    #game-canvas {
+        max-width: 100vw;
+        max-height: calc(100vh - 60px);
     }
 
     .game-info {
         font-size: 10px;
-        padding: 0 10px;
+        padding: 3px 10px;
+    }
+}
+
+/* 竖屏模式警告 */
+@media (max-width: 932px) and (orientation: portrait) {
+    #orientation-warning {
+        display: flex !important;
     }
 }
 

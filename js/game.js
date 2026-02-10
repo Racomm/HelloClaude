@@ -1,16 +1,41 @@
 // game.js - 游戏主控制类
 
 class Game {
+    setCanvasSize() {
+        // 为移动设备优化画布尺寸
+        if (this.isMobile) {
+            // 横屏模式 (推荐)
+            if (window.innerWidth > window.innerHeight) {
+                // 使用视口宽度，但留出边距
+                this.width = Math.min(window.innerWidth - 40, 932);  // iPhone 15 Plus 横屏高度
+                this.height = Math.min(window.innerHeight - 100, 400);
+            } else {
+                // 竖屏模式 (备选)
+                this.width = Math.min(window.innerWidth - 20, 430);  // iPhone 15 Plus 竖屏宽度
+                this.height = Math.min(window.innerHeight * 0.4, 300);
+            }
+        } else {
+            // 桌面设备保持原尺寸
+            this.width = 1200;
+            this.height = 400;
+        }
+    }
+
     constructor() {
         // Canvas 设置
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
 
-        // 游戏尺寸 (增加视野范围)
-        this.width = 1200;  // 从 800 增加到 1200
-        this.height = 400;  // 从 200 增加到 400
+        // 检测设备类型
+        this.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        // 动态设置游戏尺寸以适配移动设备
+        this.setCanvasSize();
         this.canvas.width = this.width;
         this.canvas.height = this.height;
+
+        // 设置 UI 缩放比例
+        Sprite.setUIScale(this.width);
 
         // 地面位置
         this.groundY = this.height - 50;
@@ -20,10 +45,17 @@ class Game {
         this.debug = false; // 调试模式
 
         // 速度和难度 (单位: 像素/帧 at 60FPS)
-        this.baseSpeed = 6;
+        // 移动设备速度稍慢，以适应触控操作
+        if (this.isMobile) {
+            this.baseSpeed = 5;
+            this.maxSpeed = 11;
+            this.speedIncrement = 0.0008;
+        } else {
+            this.baseSpeed = 6;
+            this.maxSpeed = 13;
+            this.speedIncrement = 0.001;
+        }
         this.speed = this.baseSpeed;
-        this.maxSpeed = 13;
-        this.speedIncrement = 0.001;
 
         // 昼夜切换
         this.isNight = false;
@@ -63,7 +95,15 @@ class Game {
         this.canvas.addEventListener('click', () => this.handleClick());
         this.canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            this.handleClick();
+            this.handleTouch(e);
+        });
+
+        // 添加触摸结束事件（用于下蹲）
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (this.state === 'running' && this.dino.isDucking) {
+                this.dino.duck(false);
+            }
         });
 
         // 窗口大小调整
@@ -100,6 +140,32 @@ class Game {
         this.handleJump();
     }
 
+    handleTouch(e) {
+        // 初始化音效
+        this.sound.init();
+        this.sound.resume();
+
+        if (this.state !== 'running') {
+            this.handleJump();
+            return;
+        }
+
+        // 获取触摸位置
+        const touch = e.touches[0];
+        const rect = this.canvas.getBoundingClientRect();
+        const touchY = touch.clientY - rect.top;
+        const canvasDisplayHeight = rect.height;
+
+        // 如果触摸在下半部分，则下蹲；否则跳跃
+        if (touchY > canvasDisplayHeight * 0.6) {
+            this.dino.duck(true);
+        } else {
+            if (this.dino.jump()) {
+                this.sound.playJump();
+            }
+        }
+    }
+
     handleJump() {
         // 初始化音效 (需要用户交互)
         this.sound.init();
@@ -117,10 +183,49 @@ class Game {
     }
 
     handleResize() {
-        // 响应式调整
+        // 更新画布尺寸
+        if (this.isMobile) {
+            const oldWidth = this.width;
+            const oldHeight = this.height;
+
+            this.setCanvasSize();
+
+            // 如果尺寸变化，重新初始化画布
+            if (oldWidth !== this.width || oldHeight !== this.height) {
+                this.canvas.width = this.width;
+                this.canvas.height = this.height;
+                this.groundY = this.height - 50;
+
+                // 更新 UI 缩放比例
+                Sprite.setUIScale(this.width);
+
+                // 重新初始化游戏对象（如果游戏已开始）
+                if (this.dino) {
+                    this.initGameObjects();
+                }
+            }
+        }
+
+        // 响应式调整显示大小
         const maxWidth = Math.min(this.width, window.innerWidth - 20);
         this.canvas.style.width = maxWidth + 'px';
         this.canvas.style.height = (maxWidth * this.height / this.width) + 'px';
+
+        // 检查屏幕方向
+        this.checkOrientation();
+    }
+
+    checkOrientation() {
+        if (!this.isMobile) return;
+
+        const isLandscape = window.innerWidth > window.innerHeight;
+        const orientationWarning = document.getElementById('orientation-warning');
+
+        if (!isLandscape && orientationWarning) {
+            orientationWarning.style.display = 'flex';
+        } else if (orientationWarning) {
+            orientationWarning.style.display = 'none';
+        }
     }
 
     startGame() {

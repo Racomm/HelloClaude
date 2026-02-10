@@ -2,15 +2,35 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Dino Game - Chrome 小恐龙</title>
+
+    <!-- iPhone 优化 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Dino Game">
+    <meta name="format-detection" content="telephone=no">
+
+    <!-- 防止双击缩放 -->
+    <meta name="msapplication-tap-highlight" content="no">
+
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- 屏幕方向提示 (仅移动设备竖屏时显示) -->
+    <div id="orientation-warning" style="display: none;">
+        <div class="orientation-content">
+            <div class="rotate-icon">📱 ↻</div>
+            <p>请将设备横屏以获得最佳体验</p>
+            <p class="orientation-hint">Rotate your device for better experience</p>
+        </div>
+    </div>
+
     <div class="game-container">
         <canvas id="game-canvas"></canvas>
         <div class="game-info">
-            <p>空格/上箭头: 跳跃 | 下箭头: 下蹲 | 点击屏幕: 开始/跳跃</p>
+            <p class="desktop-controls">空格/上箭头: 跳跃 | 下箭头: 下蹲 | 点击屏幕: 开始/跳跃</p>
+            <p class="mobile-controls">点击上方跳跃 | 点击下方下蹲</p>
         </div>
     </div>
 
