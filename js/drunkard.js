@@ -569,6 +569,11 @@ class DrunkardGame {
           this._onAction();
         }
       }
+      // 左右同时按下 → 跳跃
+      if (this.input.left && this.input.right) {
+        this.input.jump = true;
+        this._onAction();
+      }
       if (e.touches.length === 0) {
         this.input.left = false; this.input.right = false; this.input.jump = false;
       }
