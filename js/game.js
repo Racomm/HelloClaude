@@ -7,8 +7,9 @@ class Game {
             // 横屏模式 (推荐)
             if (window.innerWidth > window.innerHeight) {
                 // 使用视口宽度，但留出边距
-                this.width = Math.min(window.innerWidth - 40, 932);  // iPhone 15 Plus 横屏高度
-                this.height = Math.min(window.innerHeight - 100, 400);
+                this.width = Math.min(window.innerWidth - 40, 932);  // iPhone 15 Plus 横屏宽度
+                // 增加高度以充分利用屏幕空间，留出少量边距给控制提示
+                this.height = Math.min(window.innerHeight - 50, 430);  // 从 400 增加到 430
             } else {
                 // 竖屏模式 (备选)
                 this.width = Math.min(window.innerWidth - 20, 430);  // iPhone 15 Plus 竖屏宽度
