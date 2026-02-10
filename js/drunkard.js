@@ -16,11 +16,11 @@ const HUD_H = 82;
 const LEVELS = [
   { id: 1, alcohol: '青岛啤酒',     icon: '🍺', price: 15,   spawnInterval: 65, fallSpeed: 3.0, bombChance: 0.15, drunkChance: 0.09, multi: false, drunkman: false },
   { id: 2, alcohol: '劲酒',         icon: '🥃', price: 35,   spawnInterval: 58, fallSpeed: 3.5, bombChance: 0.18, drunkChance: 0.11, multi: false, drunkman: false },
-  { id: 3, alcohol: '老白干',       icon: '🍶', price: 60,   spawnInterval: 52, fallSpeed: 4.0, bombChance: 0.21, drunkChance: 0.13, multi: true,  drunkman: true,  drunkmanInterval: 310, drunkmanSpeed: 3.5 },
-  { id: 4, alcohol: '牛栏山二锅头', icon: '🥂', price: 100,  spawnInterval: 46, fallSpeed: 4.5, bombChance: 0.24, drunkChance: 0.15, multi: true,  drunkman: true,  drunkmanInterval: 260, drunkmanSpeed: 4.2 },
-  { id: 5, alcohol: '郎酒',         icon: '🍾', price: 200,  spawnInterval: 42, fallSpeed: 5.0, bombChance: 0.27, drunkChance: 0.16, multi: true,  drunkman: true,  drunkmanInterval: 210, drunkmanSpeed: 4.8 },
-  { id: 6, alcohol: '五粮液',       icon: '🏆', price: 400,  spawnInterval: 40, fallSpeed: 5.5, bombChance: 0.30, drunkChance: 0.17, multi: true,  drunkman: true,  drunkmanInterval: 165, drunkmanSpeed: 5.4 },
-  { id: 7, alcohol: '飞天茅台',     icon: '✨', price: 1000, spawnInterval: 36, fallSpeed: 6.0, bombChance: 0.32, drunkChance: 0.18, multi: true,  drunkman: true,  drunkmanInterval: 130, drunkmanSpeed: 6.0 },
+  { id: 3, alcohol: '老白干',       icon: '🍶', price: 60,   spawnInterval: 52, fallSpeed: 4.0, bombChance: 0.21, drunkChance: 0.13, multi: true,  drunkman: true,  drunkmanInterval: 155, drunkmanSpeed: 1.75 },
+  { id: 4, alcohol: '牛栏山二锅头', icon: '🥂', price: 100,  spawnInterval: 46, fallSpeed: 4.5, bombChance: 0.24, drunkChance: 0.15, multi: true,  drunkman: true,  drunkmanInterval: 130, drunkmanSpeed: 2.1  },
+  { id: 5, alcohol: '郎酒',         icon: '🍾', price: 200,  spawnInterval: 42, fallSpeed: 5.0, bombChance: 0.27, drunkChance: 0.16, multi: true,  drunkman: true,  drunkmanInterval: 105, drunkmanSpeed: 2.4  },
+  { id: 6, alcohol: '五粮液',       icon: '🏆', price: 400,  spawnInterval: 40, fallSpeed: 5.5, bombChance: 0.30, drunkChance: 0.17, multi: true,  drunkman: true,  drunkmanInterval: 82,  drunkmanSpeed: 2.7  },
+  { id: 7, alcohol: '飞天茅台',     icon: '✨', price: 1000, spawnInterval: 36, fallSpeed: 6.0, bombChance: 0.32, drunkChance: 0.18, multi: true,  drunkman: true,  drunkmanInterval: 65,  drunkmanSpeed: 3.0  },
 ];
 
 // ============================================================
@@ -32,7 +32,7 @@ const POS_ITEMS = [
   { label: '¥4', value: 4,  r: 20, bg: '#FF8C00', fg: '#5c2d00', weight: 13, isHeart: false },
   { label: '💰', value: 12, r: 22, bg: '#8B4513', fg: '#FFD700', weight: 6,  isHeart: false },
   { label: '🍀', value: 20, r: 22, bg: '#228B22', fg: '#90EE90', weight: 3,  isHeart: false },
-  { label: '❤️', value: 0,  r: 20, bg: '#CC1144', fg: '#FFFFFF', weight: 2,  isHeart: true  },
+  { label: '❤️', value: 0,  r: 20, bg: '#CC1144', fg: '#FFFFFF', weight: 6,  isHeart: true  },
 ];
 const TOTAL_POS_WEIGHT = POS_ITEMS.reduce((s, d) => s + d.weight, 0);
 
