@@ -323,9 +323,9 @@ class Character {
     const FRIC   = SLOW ? 0.55 : 0.72;
     const JUMP   = -13;
 
-    if (input.left)       { this.vx = -SPEED; this.facing = -1; }
-    else if (input.right) { this.vx = SPEED;  this.facing =  1; }
-    else                    this.vx *= FRIC;
+    if      (input.left && !input.right) { this.vx = -SPEED; this.facing = -1; }
+    else if (input.right && !input.left) { this.vx = SPEED;  this.facing =  1; }
+    else                                   this.vx *= FRIC; // 左右同时 → 不施加水平速度
 
     if (input.jump && !this.jumping) { this.vy = JUMP; this.jumping = true; }
 
@@ -586,11 +586,11 @@ class DrunkardGame {
   _onAction() {
     if      (this.state === STATE.MENU)                              this._startGame();
     else if (this.state === STATE.LEVEL_WIN  && this.stateTick > 70) this._nextLevel();
-    else if (this.state === STATE.GAME_OVER  && this.stateTick > 70) this.state = STATE.MENU;
-    else if (this.state === STATE.ENDING     && this.stateTick > 70) {
-      if (this._lastTap.x < CW / 2) this._startGame();
-      else { this.state = STATE.MENU; this.stateTick = 0; }
+    else if (this.state === STATE.GAME_OVER  && this.stateTick > 70) {
+      if (this._lastTap.x < CW / 2) this._restartLevel();       // 左：重玩本关
+      else { this.state = STATE.MENU; this.stateTick = 0; }      // 右：退出到主菜单
     }
+    else if (this.state === STATE.ENDING     && this.stateTick > 70) this._startGame();
   }
 
   // ----------------------------------------------------------
@@ -606,6 +606,12 @@ class DrunkardGame {
     this.drunkMen = []; this.drunkmanTick = 0;
     this.character = new Character();
     this.input = { left: false, right: false, jump: false };
+  }
+
+  _restartLevel() {
+    this.lives = 3;
+    this.state = STATE.PLAYING; this.stateTick = 0;
+    this._initLevel();
   }
 
   _nextLevel() {
@@ -978,10 +984,17 @@ class DrunkardGame {
     ctx.fillText('振作精神，再来一次！', cx, cardY + 230);
 
     if (this.stateTick > 70) {
-      const btnY = cardY + cardH - 52;
-      ctx.fillStyle = '#DAA520'; rRect(ctx, cardX + 35, btnY, cardW - 70, 40, 20); ctx.fill();
-      ctx.fillStyle = '#1a1a00'; ctx.font = 'bold 16px Arial, sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText('重新开始', cx, btnY + 26);
+      const btnY = cardY + cardH - 68, halfW = (cardW - 60) / 2;
+      ctx.fillStyle = '#6B1010'; rRect(ctx, cardX + 20, btnY, halfW, 44, 14); ctx.fill();
+      ctx.strokeStyle = '#FF5555'; ctx.lineWidth = 1.5; rRect(ctx, cardX + 20, btnY, halfW, 44, 14); ctx.stroke();
+      ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 14px Arial, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('重玩本关 🔄', cardX + 20 + halfW / 2, btnY + 28);
+      ctx.fillStyle = '#1e1e1e'; rRect(ctx, cardX + 30 + halfW, btnY, halfW, 44, 14); ctx.fill();
+      ctx.strokeStyle = '#666666'; ctx.lineWidth = 1.5; rRect(ctx, cardX + 30 + halfW, btnY, halfW, 44, 14); ctx.stroke();
+      ctx.fillStyle = '#AAAAAA'; ctx.font = 'bold 14px Arial, sans-serif';
+      ctx.fillText('退出游戏', cardX + 30 + halfW + halfW / 2, btnY + 28);
+      ctx.fillStyle = '#555555'; ctx.font = '11px Arial, sans-serif';
+      ctx.fillText('Enter = 重玩  |  Esc = 退出', cx, btnY + 58);
     }
   }
 
@@ -1018,22 +1031,16 @@ class DrunkardGame {
     ctx.strokeStyle = 'rgba(255,215,0,0.3)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(cardX + 25, cardY + 352); ctx.lineTo(cardX + cardW - 25, cardY + 352); ctx.stroke();
     ctx.fillStyle = '#AAAAAA'; ctx.font = '13px Arial, sans-serif';
-    ctx.fillText('继续你的传说，还是就此封瓶？', cx, cardY + 372);
+    ctx.fillText('继续你的传说！', cx, cardY + 372);
 
     if (this.stateTick > 70) {
-      const btnY = cardY + cardH - 118, halfW = (cardW - 60) / 2;
-      ctx.fillStyle = '#B8860B'; rRect(ctx, cardX + 20, btnY, halfW, 44, 14); ctx.fill();
-      ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 1.5; rRect(ctx, cardX + 20, btnY, halfW, 44, 14); ctx.stroke();
-      ctx.fillStyle = '#1a1a00'; ctx.font = 'bold 15px Arial, sans-serif';
-      ctx.fillText('二周目 🥂', cardX + 20 + halfW / 2, btnY + 28);
-
-      ctx.fillStyle = '#1e1e3e'; rRect(ctx, cardX + 30 + halfW, btnY, halfW, 44, 14); ctx.fill();
-      ctx.strokeStyle = '#6666AA'; ctx.lineWidth = 1.5; rRect(ctx, cardX + 30 + halfW, btnY, halfW, 44, 14); ctx.stroke();
-      ctx.fillStyle = '#AAAACC'; ctx.font = 'bold 15px Arial, sans-serif';
-      ctx.fillText('回主菜单', cardX + 30 + halfW + halfW / 2, btnY + 28);
-
+      const btnY = cardY + cardH - 118;
+      ctx.fillStyle = '#B8860B'; rRect(ctx, cardX + 35, btnY, cardW - 70, 44, 22); ctx.fill();
+      ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 1.5; rRect(ctx, cardX + 35, btnY, cardW - 70, 44, 22); ctx.stroke();
+      ctx.fillStyle = '#1a1a00'; ctx.font = 'bold 16px Arial, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('二周目 🥂', cx, btnY + 28);
       ctx.fillStyle = '#555566'; ctx.font = '11px Arial, sans-serif';
-      ctx.fillText('Enter / 点左 = 二周目  |  Esc / 点右 = 菜单', cx, btnY + 62);
+      ctx.fillText('点击 / Enter = 再来一局', cx, btnY + 62);
     }
   }
 
