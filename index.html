@@ -14,6 +14,13 @@
     <!-- 防止双击缩放 -->
     <meta name="msapplication-tap-highlight" content="no">
 
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#52B788">
+
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -41,5 +48,20 @@
     <script src="js/obstacle.js"></script>
     <script src="js/score.js"></script>
     <script src="js/game.js"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
