@@ -206,15 +206,30 @@ class Character {
     this.HURT_DUR  = 90;
     this.slowFrames = 0;
     this.SLOW_DUR   = 180; // 3秒 @ 60fps
+    this.stunFrames = 0;
+    this.STUN_DUR   = 180; // 断片眩晕 3秒
     this.celebrating = false;
   }
 
   update(input) {
+    const GRAV = 0.55;
+
+    // 断片眩晕：原地躺倒，无法移动
+    if (this.stunFrames > 0) {
+      this.vx  = 0;
+      this.vy += GRAV;
+      this.y  += this.vy;
+      if (this.y >= this.groundY) { this.y = this.groundY; this.vy = 0; this.jumping = false; }
+      this.sway += 0.09;
+      this.stunFrames--;
+      if (this.hurtFrames > 0) this.hurtFrames--;
+      return;
+    }
+
     const SLOW   = this.slowFrames > 0;
     const SPEED  = SLOW ? 2.0 : 5.5;    // 醉酒时大幅减速
     const FRIC   = SLOW ? 0.55 : 0.72;
     const JUMP   = -13;
-    const GRAV   = 0.55;
 
     if (input.left)       { this.vx = -SPEED; this.facing = -1; }
     else if (input.right) { this.vx = SPEED;  this.facing =  1; }
@@ -252,9 +267,35 @@ class Character {
     this.slowFrames = this.SLOW_DUR;
   }
 
+  stun() {
+    this.stunFrames = this.STUN_DUR;
+    this.slowFrames = 0;
+    this.vx = 0;
+  }
+
   bounds() { return { x: this.x + 7, y: this.y + 4, w: this.w - 14, h: this.h - 4 }; }
 
   draw(ctx) {
+    // 断片眩晕：横躺在地 + 轨道星星
+    if (this.stunFrames > 0) {
+      const cx = this.x + this.w / 2;
+      const gy = GROUND_Y - 16;
+      ctx.save();
+      ctx.translate(cx, gy);
+      ctx.rotate(Math.PI / 2); // 向右倒下，头朝右
+      this._drawBody(ctx);
+      ctx.restore();
+      ctx.save();
+      ctx.font = '16px serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      for (let i = 0; i < 3; i++) {
+        const a = (this.sway * 2.5) + (i * Math.PI * 2 / 3);
+        ctx.fillText('💫', cx + this.h * 0.82 + Math.cos(a) * 14, gy - 20 + Math.sin(a) * 14);
+      }
+      ctx.restore();
+      return;
+    }
+
     if (this.hurtFrames > 0 && Math.floor(this.hurtFrames / 6) % 2 === 0) {
       ctx.save(); ctx.globalAlpha = 0.15;
     } else { ctx.save(); }
@@ -541,10 +582,16 @@ class DrunkardGame {
             if (this.lives <= 0) { this.state = STATE.GAME_OVER; this.stateTick = 0; }
           }
         } else if (item.isDrunk) {
-          // 醉酒：重置连击 + 3秒减速
           this.combo = 0;
-          this.character.slowDown();
-          this.particles.push(new Particle(item.x, item.y - 20, '🍶 行动迟缓！连击↓0', '#BB66FF'));
+          if (this.character.slowFrames > 0 || this.character.stunFrames > 0) {
+            // 二次中招：断片眩晕
+            this.character.stun();
+            this.particles.push(new Particle(item.x, item.y - 20, '💫 断片！眩晕3秒！', '#FF44FF'));
+          } else {
+            // 首次：醉酒减速
+            this.character.slowDown();
+            this.particles.push(new Particle(item.x, item.y - 20, '🍶 行动迟缓！连击↓0', '#BB66FF'));
+          }
         } else if (item.def.isHeart) {
           this.combo++;
           if (this.lives < 3) {
@@ -651,7 +698,8 @@ class DrunkardGame {
     const lv       = LEVELS[this.levelIdx];
     const hasCombo = this.combo >= 3;
     const isSlow   = this.character.slowFrames > 0;
-    const hudH     = (hasCombo || isSlow) ? HUD_H : HUD_H - 16;
+    const isStun   = this.character.stunFrames > 0;
+    const hudH     = (hasCombo || isSlow || isStun) ? HUD_H : HUD_H - 16;
 
     ctx.fillStyle = 'rgba(0,0,0,0.68)'; ctx.fillRect(0, 0, CW, hudH);
 
@@ -675,8 +723,12 @@ class DrunkardGame {
     for (let i = 0; i < 3; i++) hearts += (i < this.lives) ? '❤️' : '🖤';
     ctx.fillText(hearts, CW / 2, 64);
 
-    // 状态行：COMBO 或 醉酒减速
-    if (isSlow) {
+    // 状态行：断片 > 醉酒减速 > COMBO
+    if (isStun) {
+      const secLeft = Math.ceil(this.character.stunFrames / 60);
+      ctx.fillStyle = '#FF44FF'; ctx.font = 'bold 12px Arial, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(`💫 断片眩晕  剩余 ${secLeft}s`, CW / 2, hudH - 3);
+    } else if (isSlow) {
       const secLeft = Math.ceil(this.character.slowFrames / 60);
       ctx.fillStyle = '#BB66FF'; ctx.font = 'bold 12px Arial, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText(`🌀 醉酒减速  剩余 ${secLeft}s`, CW / 2, hudH - 3);
@@ -718,7 +770,7 @@ class DrunkardGame {
       '收集空中掉落的金币，凑够钱买酒！',
       '',
       '💣  炸弹：-1命，连击归零',
-      '🍶  醉酒：移速大幅下降，连击归零',
+      '🍶  醉酒：移速↓  再中一次→断片躺倒3s',
       '❤️  血格：回复1命（满血转¥8）',
       '',
       '🔥  COMBO 连击乘数加成：',
