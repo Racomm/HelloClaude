@@ -1,0 +1,28 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #050510;
+  overflow: hidden;
+  touch-action: none;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#gameCanvas {
+  display: block;
+  /* Actual size set via JS; this just centers it */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
