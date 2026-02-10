@@ -1,5 +1,5 @@
 // Service Worker for Dino Game PWA
-const CACHE_NAME = 'dino-game-v2';
+const CACHE_NAME = 'dino-game-v3';
 const urlsToCache = [
   './',
   './index.html',

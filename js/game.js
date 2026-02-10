@@ -67,7 +67,7 @@ class Game {
 
         // 金币系统
         this.coins = 0;
-        this.coinsForLife = 100;
+        this.coinsForLife = 30;
 
         // 初始化游戏对象
         this.initGameObjects();
@@ -332,7 +332,13 @@ class Game {
             if (this.coins >= this.coinsForLife) {
                 this.coins -= this.coinsForLife;
                 if (this.lives < this.maxLives) {
+                    // 未满血：加一条命
                     this.lives++;
+                    this.sound.playExtraLife();
+                } else {
+                    // 满血：奖励5秒无敌（timer从负值开始，走完5000ms）
+                    this.isInvincible = true;
+                    this.invincibleTimer = this.invincibleDuration - 5000; // -3000ms → 倒数5秒
                     this.sound.playExtraLife();
                 }
             }
