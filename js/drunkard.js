@@ -14,13 +14,13 @@ const HUD_H = 82;
 // 炸弹+醉酒概率大幅提升；后期合计坏道具占 50%
 // ============================================================
 const LEVELS = [
-  { id: 1, alcohol: '青岛啤酒',     icon: '🍺', price: 15,   spawnInterval: 65, fallSpeed: 3.0, bombChance: 0.15, drunkChance: 0.09, multi: false },
-  { id: 2, alcohol: '劲酒',         icon: '🥃', price: 35,   spawnInterval: 58, fallSpeed: 3.5, bombChance: 0.18, drunkChance: 0.11, multi: false },
-  { id: 3, alcohol: '老白干',       icon: '🍶', price: 60,   spawnInterval: 52, fallSpeed: 4.0, bombChance: 0.21, drunkChance: 0.13, multi: true  },
-  { id: 4, alcohol: '牛栏山二锅头', icon: '🥂', price: 100,  spawnInterval: 46, fallSpeed: 4.5, bombChance: 0.24, drunkChance: 0.15, multi: true  },
-  { id: 5, alcohol: '郎酒',         icon: '🍾', price: 200,  spawnInterval: 42, fallSpeed: 5.0, bombChance: 0.27, drunkChance: 0.16, multi: true  },
-  { id: 6, alcohol: '五粮液',       icon: '🏆', price: 400,  spawnInterval: 40, fallSpeed: 5.5, bombChance: 0.30, drunkChance: 0.17, multi: true  },
-  { id: 7, alcohol: '飞天茅台',     icon: '✨', price: 1000, spawnInterval: 36, fallSpeed: 6.0, bombChance: 0.32, drunkChance: 0.18, multi: true  },
+  { id: 1, alcohol: '青岛啤酒',     icon: '🍺', price: 15,   spawnInterval: 65, fallSpeed: 3.0, bombChance: 0.15, drunkChance: 0.09, multi: false, drunkman: false },
+  { id: 2, alcohol: '劲酒',         icon: '🥃', price: 35,   spawnInterval: 58, fallSpeed: 3.5, bombChance: 0.18, drunkChance: 0.11, multi: false, drunkman: false },
+  { id: 3, alcohol: '老白干',       icon: '🍶', price: 60,   spawnInterval: 52, fallSpeed: 4.0, bombChance: 0.21, drunkChance: 0.13, multi: true,  drunkman: true,  drunkmanInterval: 310, drunkmanSpeed: 3.5 },
+  { id: 4, alcohol: '牛栏山二锅头', icon: '🥂', price: 100,  spawnInterval: 46, fallSpeed: 4.5, bombChance: 0.24, drunkChance: 0.15, multi: true,  drunkman: true,  drunkmanInterval: 260, drunkmanSpeed: 4.2 },
+  { id: 5, alcohol: '郎酒',         icon: '🍾', price: 200,  spawnInterval: 42, fallSpeed: 5.0, bombChance: 0.27, drunkChance: 0.16, multi: true,  drunkman: true,  drunkmanInterval: 210, drunkmanSpeed: 4.8 },
+  { id: 6, alcohol: '五粮液',       icon: '🏆', price: 400,  spawnInterval: 40, fallSpeed: 5.5, bombChance: 0.30, drunkChance: 0.17, multi: true,  drunkman: true,  drunkmanInterval: 165, drunkmanSpeed: 5.4 },
+  { id: 7, alcohol: '飞天茅台',     icon: '✨', price: 1000, spawnInterval: 36, fallSpeed: 6.0, bombChance: 0.32, drunkChance: 0.18, multi: true,  drunkman: true,  drunkmanInterval: 130, drunkmanSpeed: 6.0 },
 ];
 
 // ============================================================
@@ -188,6 +188,98 @@ class FallingItem {
 }
 
 // ============================================================
+// DrunkMan  ── 从屏幕边缘冲入的醉汉（第3关起出现）
+// ============================================================
+class DrunkMan {
+  constructor(fromLeft, speed) {
+    this.w = 36; this.h = 54;
+    this.dir   = fromLeft ? 1 : -1;
+    this.x     = fromLeft ? -this.w - 10 : CW + 10;
+    this.y     = GROUND_Y - this.h;
+    this.speed = speed;
+    this.sway  = Math.random() * Math.PI * 2;
+    this.walkFrame = 0;
+    this.walkTick  = 0;
+    this.hit = false;
+  }
+
+  update() {
+    this.x    += this.dir * this.speed;
+    this.sway += 0.08;
+    this.walkTick++;
+    if (this.walkTick % 7 === 0) this.walkFrame = (this.walkFrame + 1) % 4;
+  }
+
+  offScreen() {
+    return this.dir > 0 ? this.x > CW + 60 : this.x < -this.w - 60;
+  }
+
+  hits(char) {
+    if (this.hit) return false;
+    const b = char.bounds();
+    return (
+      this.x + this.w > b.x && this.x < b.x + b.w &&
+      this.y + this.h > b.y && this.y < b.y + b.h
+    );
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.x + this.w / 2, this.y + this.h);
+    ctx.scale(this.dir, 1);
+    ctx.rotate(Math.sin(this.sway) * 13 * Math.PI / 180);
+    this._drawBody(ctx);
+    ctx.restore();
+  }
+
+  _drawBody(ctx) {
+    const H  = this.h;
+    const lp = Math.sin(this.walkFrame * Math.PI / 2);
+    // feet
+    ctx.fillStyle = '#1a0505';
+    ctx.beginPath(); ctx.ellipse(-7, 0, 9, 5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse( 7, 0, 9, 5, 0, 0, Math.PI * 2); ctx.fill();
+    // legs
+    ctx.strokeStyle = '#2a0808'; ctx.lineWidth = 8; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-6, -5); ctx.lineTo(-6 + lp * 6, -H * 0.35); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo( 6, -5); ctx.lineTo( 6 - lp * 6, -H * 0.35); ctx.stroke();
+    // body (red jacket)
+    ctx.fillStyle = '#8B1010';
+    rRect(ctx, -13, -H * 0.62, 26, H * 0.29, 4); ctx.fill();
+    ctx.fillStyle = '#5c2020'; ctx.fillRect(-13, -H * 0.33, 26, 7);
+    // arms
+    const as = Math.sin(this.sway * 1.6) * 18;
+    ctx.strokeStyle = '#8B1010'; ctx.lineWidth = 7;
+    ctx.beginPath(); ctx.moveTo(-13, -H * 0.55); ctx.lineTo(-23, -H * 0.38 + as); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo( 13, -H * 0.55); ctx.lineTo( 23, -H * 0.38 - as); ctx.stroke();
+    // left hand
+    ctx.fillStyle = '#FDBCB4';
+    ctx.beginPath(); ctx.arc(-23, -H * 0.38 + as, 5, 0, Math.PI * 2); ctx.fill();
+    // right hand + bottle
+    ctx.fillStyle = '#FDBCB4';
+    ctx.beginPath(); ctx.arc(23, -H * 0.38 - as, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#117733';
+    ctx.fillRect(21, -H * 0.38 - as - 15, 4, 12);
+    ctx.fillStyle = '#229944';
+    ctx.fillRect(21, -H * 0.38 - as - 19, 4, 5);
+    // head
+    ctx.fillStyle = '#FDBCB4';
+    ctx.beginPath(); ctx.arc(0, -H * 0.79, 14, 0, Math.PI * 2); ctx.fill();
+    // hair
+    ctx.fillStyle = '#1a0a0a';
+    ctx.beginPath(); ctx.arc(0, -H * 0.86, 12, Math.PI + 0.25, -0.25, false); ctx.fill();
+    // face emoji
+    ctx.font = `${Math.round(H * 0.3)}px serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('🥴', 0, -H * 0.79);
+    // red cheeks
+    ctx.fillStyle = 'rgba(240,60,60,0.5)';
+    ctx.beginPath(); ctx.ellipse(-9, -H * 0.74, 4.5, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse( 9, -H * 0.74, 4.5, 3, 0, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+// ============================================================
 // Character
 // ============================================================
 class Character {
@@ -205,7 +297,7 @@ class Character {
     this.hurtFrames = 0;
     this.HURT_DUR  = 90;
     this.slowFrames = 0;
-    this.SLOW_DUR   = 180; // 3秒 @ 60fps
+    this.SLOW_DUR   = 300; // 5秒 @ 60fps
     this.stunFrames = 0;
     this.STUN_DUR   = 180; // 断片眩晕 3秒
     this.celebrating = false;
@@ -390,6 +482,7 @@ class DrunkardGame {
     this.items     = [];
     this.particles = [];
     this.fireworks = [];
+    this.drunkMen  = [];
     this.spawnTick = 0;
     this.stateTick = 0;
     this._lastTap  = { x: CW / 2, y: CH / 2 };
@@ -505,6 +598,7 @@ class DrunkardGame {
   _initLevel() {
     this.wealth = 0; this.combo = 0;
     this.items = []; this.particles = []; this.spawnTick = 0;
+    this.drunkMen = []; this.drunkmanTick = 0;
     this.character = new Character();
     this.input = { left: false, right: false, jump: false };
   }
@@ -619,6 +713,32 @@ class DrunkardGame {
 
       if (item.offScreen() || item.collected) this.items.splice(i, 1);
     }
+
+    // 醉汉（第3关起）
+    if (lv.drunkman) {
+      this.drunkmanTick++;
+      if (this.drunkmanTick >= lv.drunkmanInterval) {
+        this.drunkmanTick = 0;
+        this.drunkMen.push(new DrunkMan(Math.random() < 0.5, lv.drunkmanSpeed));
+      }
+    }
+    for (let i = this.drunkMen.length - 1; i >= 0; i--) {
+      const dm = this.drunkMen[i];
+      dm.update();
+      if (dm.hits(this.character)) {
+        dm.hit = true;
+        if (this.character.hurt()) {
+          this.combo = 0;
+          this.lives--;
+          this.particles.push(new Particle(
+            this.character.x + this.character.w / 2,
+            this.character.y - 20, '🥴 被醉汉撞倒！', '#FF5555'
+          ));
+          if (this.lives <= 0) { this.state = STATE.GAME_OVER; this.stateTick = 0; }
+        }
+      }
+      if (dm.offScreen() || dm.hit) this.drunkMen.splice(i, 1);
+    }
   }
 
   _updateFireworks() {
@@ -688,6 +808,7 @@ class DrunkardGame {
   // ----------------------------------------------------------
   _drawGame(ctx) {
     for (const item of this.items) item.draw(ctx);
+    for (const dm of this.drunkMen) dm.draw(ctx);
     this.character.draw(ctx);
     for (const p of this.particles) p.draw(ctx);
     this._drawHUD(ctx);
@@ -770,12 +891,12 @@ class DrunkardGame {
       '收集空中掉落的金币，凑够钱买酒！',
       '',
       '💣  炸弹：-1命，连击归零',
-      '🍶  醉酒：移速↓  再中一次→断片躺倒3s',
+      '🍶  醉酒：移速↓5s  再中→断片躺倒3s',
+      '🥴  醉汉（第3关起）：跳跃躲避，撞到-1命',
       '❤️  血格：回复1命（满血转¥8）',
       '',
-      '🔥  COMBO 连击乘数加成：',
-      '    5连 ×2  |  10连 ×3  |  20连 ×5',
-      '✅  每关通关后自动恢复满血！',
+      '🔥  COMBO: 5连×2 / 10连×3 / 20连×5',
+      '✅  通关后自动恢复满血！',
     ];
     ctx.fillStyle = '#CCCCCC'; ctx.font = '13px Arial, sans-serif';
     lines.forEach((l, i) => ctx.fillText(l, cx, cardY + 182 + i * 22));
