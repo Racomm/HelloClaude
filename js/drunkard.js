@@ -14,13 +14,13 @@ const HUD_H = 82;
 // 炸弹+醉酒概率大幅提升；后期合计坏道具占 50%
 // ============================================================
 const LEVELS = [
-  { id: 1, alcohol: '青岛啤酒',     icon: '🍺', price: 15,   spawnInterval: 65, fallSpeed: 3.0, bombChance: 0.15, drunkChance: 0.09, multi: false, drunkman: false },
-  { id: 2, alcohol: '劲酒',         icon: '🥃', price: 35,   spawnInterval: 58, fallSpeed: 3.5, bombChance: 0.18, drunkChance: 0.11, multi: false, drunkman: false },
-  { id: 3, alcohol: '老白干',       icon: '🍶', price: 60,   spawnInterval: 52, fallSpeed: 4.0, bombChance: 0.21, drunkChance: 0.13, multi: true,  drunkman: true,  drunkmanInterval: 310, drunkmanSpeed: 1.75 },
-  { id: 4, alcohol: '牛栏山二锅头', icon: '🥂', price: 100,  spawnInterval: 46, fallSpeed: 4.5, bombChance: 0.24, drunkChance: 0.15, multi: true,  drunkman: true,  drunkmanInterval: 260, drunkmanSpeed: 2.1  },
-  { id: 5, alcohol: '郎酒',         icon: '🍾', price: 200,  spawnInterval: 42, fallSpeed: 5.0, bombChance: 0.27, drunkChance: 0.16, multi: true,  drunkman: true,  drunkmanInterval: 210, drunkmanSpeed: 2.4  },
-  { id: 6, alcohol: '五粮液',       icon: '🏆', price: 400,  spawnInterval: 40, fallSpeed: 5.5, bombChance: 0.30, drunkChance: 0.17, multi: true,  drunkman: true,  drunkmanInterval: 165, drunkmanSpeed: 2.7  },
-  { id: 7, alcohol: '飞天茅台',     icon: '✨', price: 1000, spawnInterval: 36, fallSpeed: 6.0, bombChance: 0.32, drunkChance: 0.18, multi: true,  drunkman: true,  drunkmanInterval: 130, drunkmanSpeed: 3.0  },
+  { id: 1, alcohol: '青岛啤酒',     icon: '🍺', price: 15,   spawnInterval: 65, fallSpeed: 3.0, bombChance: 0.15, drunkChance: 0.05, multi: false, drunkman: false },
+  { id: 2, alcohol: '劲酒',         icon: '🥃', price: 35,   spawnInterval: 58, fallSpeed: 3.5, bombChance: 0.18, drunkChance: 0.07, multi: false, drunkman: false },
+  { id: 3, alcohol: '老白干',       icon: '🍶', price: 60,   spawnInterval: 52, fallSpeed: 4.0, bombChance: 0.21, drunkChance: 0.08, multi: true,  drunkman: true,  drunkmanInterval: 310, drunkmanSpeed: 1.75 },
+  { id: 4, alcohol: '牛栏山二锅头', icon: '🥂', price: 100,  spawnInterval: 46, fallSpeed: 4.5, bombChance: 0.24, drunkChance: 0.09, multi: true,  drunkman: true,  drunkmanInterval: 260, drunkmanSpeed: 1.75 },
+  { id: 5, alcohol: '郎酒',         icon: '🍾', price: 200,  spawnInterval: 42, fallSpeed: 5.0, bombChance: 0.27, drunkChance: 0.10, multi: true,  drunkman: true,  drunkmanInterval: 210, drunkmanSpeed: 1.75 },
+  { id: 6, alcohol: '五粮液',       icon: '🏆', price: 400,  spawnInterval: 40, fallSpeed: 5.5, bombChance: 0.30, drunkChance: 0.10, multi: true,  drunkman: true,  drunkmanInterval: 165, drunkmanSpeed: 1.75 },
+  { id: 7, alcohol: '飞天茅台',     icon: '✨', price: 1000, spawnInterval: 36, fallSpeed: 6.0, bombChance: 0.32, drunkChance: 0.11, multi: true,  drunkman: true,  drunkmanInterval: 130, drunkmanSpeed: 1.75 },
 ];
 
 // ============================================================
