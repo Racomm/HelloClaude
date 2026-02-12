@@ -10,31 +10,63 @@ const GROUND_Y = CH - GROUND_H;
 const HUD_H = 82;
 
 // ============================================================
-// Level Definitions
-// 炸弹+醉酒概率大幅提升；后期合计坏道具占 50%
+// Level Definitions — 渐进式引入机制
 // ============================================================
 const LEVELS = [
-  { id: 1, alcohol: '青岛啤酒',     icon: '🍺', price: 30,   spawnInterval: 65, fallSpeed: 3.0, bombChance: 0.15, drunkChance: 0.05, multi: false, drunkman: false },
-  { id: 2, alcohol: '劲酒',         icon: '🥃', price: 50,   spawnInterval: 58, fallSpeed: 3.5, bombChance: 0.18, drunkChance: 0.07, multi: false, drunkman: false },
-  { id: 3, alcohol: '老白干',       icon: '🍶', price: 80,   spawnInterval: 52, fallSpeed: 4.0, bombChance: 0.21, drunkChance: 0.08, multi: true,  drunkman: true,  drunkmanInterval: 310, drunkmanSpeed: 1.75 },
-  { id: 4, alcohol: '牛栏山二锅头', icon: '🥂', price: 150,  spawnInterval: 46, fallSpeed: 4.5, bombChance: 0.24, drunkChance: 0.09, multi: true,  drunkman: true,  drunkmanInterval: 260, drunkmanSpeed: 1.75 },
-  { id: 5, alcohol: '郎酒',         icon: '🍾', price: 300,  spawnInterval: 42, fallSpeed: 5.0, bombChance: 0.27, drunkChance: 0.10, multi: true,  drunkman: true,  drunkmanInterval: 210, drunkmanSpeed: 1.75 },
-  { id: 6, alcohol: '五粮液',       icon: '🏆', price: 800,  spawnInterval: 40, fallSpeed: 5.5, bombChance: 0.30, drunkChance: 0.10, multi: true,  drunkman: true,  drunkmanInterval: 165, drunkmanSpeed: 1.75 },
-  { id: 7, alcohol: '飞天茅台',     icon: '✨', price: 1499, spawnInterval: 36, fallSpeed: 6.0, bombChance: 0.32, drunkChance: 0.11, multi: true,  drunkman: true,  drunkmanInterval: 130, drunkmanSpeed: 1.75 },
+  { id: 1, alcohol: '青岛啤酒',     icon: '🍺', price: 30,
+    spawnInterval: 65, fallSpeed: 3.0, bombChance: 0, drunkChance: 0,
+    heartEnabled: false, cloverEnabled: false,
+    multi: false, drunkman: false,
+    cheersChance: 0, bottleThrow: false, godModeChance: 0, hint: null },
+
+  { id: 2, alcohol: '劲酒',         icon: '🥃', price: 50,
+    spawnInterval: 58, fallSpeed: 3.5, bombChance: 0.18, drunkChance: 0.07,
+    heartEnabled: true, cloverEnabled: true,
+    multi: false, drunkman: false,
+    cheersChance: 0, bottleThrow: false, godModeChance: 0, hint: '酒好喝，但不要贪杯！' },
+
+  { id: 3, alcohol: '老白干',       icon: '🍶', price: 80,
+    spawnInterval: 52, fallSpeed: 4.0, bombChance: 0.21, drunkChance: 0.08,
+    heartEnabled: true, cloverEnabled: true,
+    multi: true,  drunkman: true,  drunkmanInterval: 310, drunkmanSpeed: 1.75,
+    cheersChance: 0, bottleThrow: false, godModeChance: 0, hint: '酒蒙子来啦，快躲开！' },
+
+  { id: 4, alcohol: '牛栏山二锅头', icon: '🥂', price: 150,
+    spawnInterval: 46, fallSpeed: 4.5, bombChance: 0.24, drunkChance: 0.09,
+    heartEnabled: true, cloverEnabled: true,
+    multi: true,  drunkman: true,  drunkmanInterval: 260, drunkmanSpeed: 1.75,
+    cheersChance: 0.03, bottleThrow: false, godModeChance: 0, hint: '你有我有全都有哇！' },
+
+  { id: 5, alcohol: '郎酒',         icon: '🍾', price: 300,
+    spawnInterval: 42, fallSpeed: 5.0, bombChance: 0.27, drunkChance: 0.10,
+    heartEnabled: true, cloverEnabled: true,
+    multi: true,  drunkman: true,  drunkmanInterval: 210, drunkmanSpeed: 1.75,
+    cheersChance: 0.03, bottleThrow: true,  godModeChance: 0, hint: '你瞅啥？？？' },
+
+  { id: 6, alcohol: '五粮液',       icon: '🏆', price: 800,
+    spawnInterval: 40, fallSpeed: 5.5, bombChance: 0.30, drunkChance: 0.10,
+    heartEnabled: true, cloverEnabled: true,
+    multi: true,  drunkman: true,  drunkmanInterval: 165, drunkmanSpeed: 1.75,
+    cheersChance: 0.03, bottleThrow: true,  godModeChance: 0.02, hint: '世上无难事，只要肯喝酒！' },
+
+  { id: 7, alcohol: '飞天茅台',     icon: '✨', price: 1499,
+    spawnInterval: 36, fallSpeed: 6.0, bombChance: 0.32, drunkChance: 0.11,
+    heartEnabled: true, cloverEnabled: true,
+    multi: true,  drunkman: true,  drunkmanInterval: 130, drunkmanSpeed: 1.75,
+    cheersChance: 0.04, bottleThrow: true,  godModeChance: 0.025, hint: null },
 ];
 
 // ============================================================
-// Item Definitions  ── 基础分值大幅下调
+// Item Definitions
 // ============================================================
 const POS_ITEMS = [
-  { label: '¥1', value: 1,  r: 14, bg: '#DAA520', fg: '#5a3a00', weight: 30, isHeart: false },
-  { label: '¥2', value: 2,  r: 17, bg: '#FFA500', fg: '#7b3f00', weight: 22, isHeart: false },
-  { label: '¥4', value: 4,  r: 20, bg: '#FF8C00', fg: '#5c2d00', weight: 13, isHeart: false },
-  { label: '💰', value: 12, r: 22, bg: '#8B4513', fg: '#FFD700', weight: 6,  isHeart: false },
-  { label: '🍀', value: 20, r: 22, bg: '#228B22', fg: '#90EE90', weight: 3,  isHeart: false },
-  { label: '❤️', value: 0,  r: 20, bg: '#CC1144', fg: '#FFFFFF', weight: 6,  isHeart: true  },
+  { label: '¥1', value: 1,  r: 14, bg: '#DAA520', fg: '#5a3a00', weight: 30, isHeart: false, isClover: false },
+  { label: '¥2', value: 2,  r: 17, bg: '#FFA500', fg: '#7b3f00', weight: 22, isHeart: false, isClover: false },
+  { label: '¥4', value: 4,  r: 20, bg: '#FF8C00', fg: '#5c2d00', weight: 13, isHeart: false, isClover: false },
+  { label: '💰', value: 12, r: 22, bg: '#8B4513', fg: '#FFD700', weight: 6,  isHeart: false, isClover: false },
+  { label: '🍀', value: 20, r: 22, bg: '#228B22', fg: '#90EE90', weight: 3,  isHeart: false, isClover: true  },
+  { label: '❤️', value: 0,  r: 20, bg: '#CC1144', fg: '#FFFFFF', weight: 6,  isHeart: true,  isClover: false },
 ];
-const TOTAL_POS_WEIGHT = POS_ITEMS.reduce((s, d) => s + d.weight, 0);
 
 // ============================================================
 // Utility helpers
@@ -49,13 +81,19 @@ function rRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-function pickPosItem() {
-  let r = Math.random() * TOTAL_POS_WEIGHT;
-  for (const d of POS_ITEMS) {
+function pickPosItem(lv) {
+  const available = POS_ITEMS.filter(d => {
+    if (d.isHeart && !lv.heartEnabled) return false;
+    if (d.isClover && !lv.cloverEnabled) return false;
+    return true;
+  });
+  const total = available.reduce((s, d) => s + d.weight, 0);
+  let r = Math.random() * total;
+  for (const d of available) {
     r -= d.weight;
     if (r <= 0) return d;
   }
-  return POS_ITEMS[0];
+  return available[0];
 }
 
 // ============================================================
@@ -82,7 +120,7 @@ class Particle {
 }
 
 // ============================================================
-// FallingItem  ── type: 'positive' | 'bomb' | 'drunk'
+// FallingItem  ── type: 'positive' | 'bomb' | 'drunk' | 'cheers' | 'godmode'
 // ============================================================
 class FallingItem {
   constructor(x, def, speed, type) {
@@ -91,7 +129,7 @@ class FallingItem {
     this.type    = type;
     this.isBomb  = type === 'bomb';
     this.isDrunk = type === 'drunk';
-    this.r       = (type !== 'positive') ? 20 : def.r;
+    this.r       = (type === 'positive') ? def.r : 22;
     this.speed   = speed + Math.random() * 1.5;
     this.rot     = Math.random() * Math.PI * 2;
     this.rotSpd  = (Math.random() - 0.5) * 0.08;
@@ -122,10 +160,12 @@ class FallingItem {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.rot);
-    if      (this.isBomb)                        this._drawBomb(ctx);
-    else if (this.isDrunk)                       this._drawDrunk(ctx);
-    else if (this.def.label.startsWith('¥'))     this._drawCoin(ctx);
-    else                                         this._drawEmoji(ctx);
+    if      (this.isBomb)              this._drawBomb(ctx);
+    else if (this.isDrunk)             this._drawDrunk(ctx);
+    else if (this.type === 'cheers')   this._drawCheers(ctx);
+    else if (this.type === 'godmode')  this._drawGodMode(ctx);
+    else if (this.def.label.startsWith('¥')) this._drawCoin(ctx);
+    else                               this._drawEmoji(ctx);
     ctx.restore();
   }
 
@@ -167,23 +207,94 @@ class FallingItem {
     ctx.fillText('💣', 0, 3);
   }
 
-  // 醉酒道具 ── 紫色旋涡圆 + 🍶
   _drawDrunk(ctx) {
     const r = this.r;
-    // Outer glow
     const grd = ctx.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 1.7);
     grd.addColorStop(0, 'rgba(148,0,211,0.55)'); grd.addColorStop(1, 'transparent');
     ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(0, 0, r * 1.7, 0, Math.PI * 2); ctx.fill();
-    // Body
     ctx.fillStyle = '#4B0082'; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#9B59B6'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
-    // Highlight
     ctx.fillStyle = 'rgba(200,150,255,0.25)';
     ctx.beginPath(); ctx.ellipse(-r * 0.28, -r * 0.3, r * 0.38, r * 0.22, -0.5, 0, Math.PI * 2); ctx.fill();
-    // Emoji
     ctx.font = `${r * 1.1}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('🍶', 0, 2);
+  }
+
+  _drawCheers(ctx) {
+    const r = this.r;
+    const pulse = 0.7 + 0.3 * Math.sin(this.sparkTimer * 0.15);
+    const grd = ctx.createRadialGradient(0, 0, r * 0.3, 0, 0, r * 2.0);
+    grd.addColorStop(0, `rgba(255,215,0,${0.6 * pulse})`); grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(0, 0, r * 2.0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#B8860B'; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.font = `${Math.round(r * 1.1)}px serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('🍻', 0, 2);
+  }
+
+  _drawGodMode(ctx) {
+    const r = this.r;
+    const pulse = 0.6 + 0.4 * Math.sin(this.sparkTimer * 0.1);
+    const grd = ctx.createRadialGradient(0, 0, r * 0.2, 0, 0, r * 2.2);
+    grd.addColorStop(0, `rgba(255,215,0,${0.7 * pulse})`);
+    grd.addColorStop(0.5, `rgba(255,100,0,${0.3 * pulse})`);
+    grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(0, 0, r * 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#8B0000'; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.font = `${Math.round(r * 1.1)}px serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('🍷', 0, 2);
+  }
+}
+
+// ============================================================
+// Bottle  ── 醉汉扔出的酒瓶（第5关起）
+// ============================================================
+class Bottle {
+  constructor(x, y, targetX, targetY) {
+    this.x = x; this.y = y;
+    this.r = 12;
+    const dx = targetX - x, dy = targetY - y;
+    const t = 55;
+    this.vx = dx / t;
+    this.vy = dy / t - 0.5 * 0.32 * t;
+    this.gravity = 0.32;
+    this.rot = 0;
+    this.rotSpd = (Math.random() - 0.5) * 0.25;
+    this.collected = false;
+  }
+
+  update() {
+    this.x  += this.vx;
+    this.vy += this.gravity;
+    this.y  += this.vy;
+    this.rot += this.rotSpd;
+  }
+
+  offScreen() { return this.y > CH + 30 || this.x < -30 || this.x > CW + 30; }
+
+  hits(char) {
+    if (this.collected) return false;
+    const b = char.bounds();
+    return (
+      this.x + this.r > b.x && this.x - this.r < b.x + b.w &&
+      this.y + this.r > b.y && this.y - this.r < b.y + b.h
+    );
+  }
+
+  draw(ctx) {
+    if (this.collected) return;
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rot);
+    ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('🍾', 0, 0);
+    ctx.restore();
   }
 }
 
@@ -201,6 +312,8 @@ class DrunkMan {
     this.walkFrame = 0;
     this.walkTick  = 0;
     this.hit = false;
+    this.hasThrown  = false;
+    this.throwDelay = 60 + Math.floor(Math.random() * 90);
   }
 
   update() {
@@ -212,6 +325,23 @@ class DrunkMan {
 
   offScreen() {
     return this.x > CW + 10 || this.x < -this.w - 10;
+  }
+
+  shouldThrow() {
+    if (this.hasThrown) return false;
+    if (this.walkTick >= this.throwDelay && this.x > 20 && this.x < CW - 20) {
+      this.hasThrown = true;
+      return true;
+    }
+    return false;
+  }
+
+  getHandPos() {
+    const as = Math.sin(this.sway * 1.6) * 18;
+    return {
+      x: this.x + this.w / 2 + this.dir * 23,
+      y: this.y + this.h * 0.38 + as
+    };
   }
 
   hits(char) {
@@ -235,44 +365,33 @@ class DrunkMan {
   _drawBody(ctx) {
     const H  = this.h;
     const lp = Math.sin(this.walkFrame * Math.PI / 2);
-    // feet
     ctx.fillStyle = '#1a0505';
     ctx.beginPath(); ctx.ellipse(-7, 0, 9, 5, 0, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.ellipse( 7, 0, 9, 5, 0, 0, Math.PI * 2); ctx.fill();
-    // legs
     ctx.strokeStyle = '#2a0808'; ctx.lineWidth = 8; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(-6, -5); ctx.lineTo(-6 + lp * 6, -H * 0.35); ctx.stroke();
     ctx.beginPath(); ctx.moveTo( 6, -5); ctx.lineTo( 6 - lp * 6, -H * 0.35); ctx.stroke();
-    // body (red jacket)
     ctx.fillStyle = '#8B1010';
     rRect(ctx, -13, -H * 0.62, 26, H * 0.29, 4); ctx.fill();
     ctx.fillStyle = '#5c2020'; ctx.fillRect(-13, -H * 0.33, 26, 7);
-    // arms
     const as = Math.sin(this.sway * 1.6) * 18;
     ctx.strokeStyle = '#8B1010'; ctx.lineWidth = 7;
     ctx.beginPath(); ctx.moveTo(-13, -H * 0.55); ctx.lineTo(-23, -H * 0.38 + as); ctx.stroke();
     ctx.beginPath(); ctx.moveTo( 13, -H * 0.55); ctx.lineTo( 23, -H * 0.38 - as); ctx.stroke();
-    // left hand
     ctx.fillStyle = '#FDBCB4';
     ctx.beginPath(); ctx.arc(-23, -H * 0.38 + as, 5, 0, Math.PI * 2); ctx.fill();
-    // right hand + bottle
-    ctx.fillStyle = '#FDBCB4';
     ctx.beginPath(); ctx.arc(23, -H * 0.38 - as, 5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#117733';
     ctx.fillRect(21, -H * 0.38 - as - 15, 4, 12);
     ctx.fillStyle = '#229944';
     ctx.fillRect(21, -H * 0.38 - as - 19, 4, 5);
-    // head
     ctx.fillStyle = '#FDBCB4';
     ctx.beginPath(); ctx.arc(0, -H * 0.79, 14, 0, Math.PI * 2); ctx.fill();
-    // hair
     ctx.fillStyle = '#1a0a0a';
     ctx.beginPath(); ctx.arc(0, -H * 0.86, 12, Math.PI + 0.25, -0.25, false); ctx.fill();
-    // face emoji
     ctx.font = `${Math.round(H * 0.3)}px serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('🥴', 0, -H * 0.79);
-    // red cheeks
     ctx.fillStyle = 'rgba(240,60,60,0.5)';
     ctx.beginPath(); ctx.ellipse(-9, -H * 0.74, 4.5, 3, 0, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.ellipse( 9, -H * 0.74, 4.5, 3, 0, 0, Math.PI * 2); ctx.fill();
@@ -297,16 +416,17 @@ class Character {
     this.hurtFrames = 0;
     this.HURT_DUR  = 90;
     this.slowFrames = 0;
-    this.SLOW_DUR   = 300; // 5秒 @ 60fps
+    this.SLOW_DUR   = 300;
     this.stunFrames = 0;
-    this.STUN_DUR   = 180; // 断片眩晕 3秒
+    this.STUN_DUR   = 180;
+    this.godFrames  = 0;
+    this.GOD_DUR    = 480; // 8秒 @ 60fps
     this.celebrating = false;
   }
 
   update(input) {
     const GRAV = 0.55;
 
-    // 断片眩晕：原地躺倒，无法移动
     if (this.stunFrames > 0) {
       this.vx  = 0;
       this.vy += GRAV;
@@ -315,17 +435,18 @@ class Character {
       this.sway += 0.09;
       this.stunFrames--;
       if (this.hurtFrames > 0) this.hurtFrames--;
+      if (this.godFrames > 0) this.godFrames--;
       return;
     }
 
     const SLOW   = this.slowFrames > 0;
-    const SPEED  = SLOW ? 2.0 : 5.5;    // 醉酒时大幅减速
+    const SPEED  = SLOW ? 2.0 : 5.5;
     const FRIC   = SLOW ? 0.55 : 0.72;
     const JUMP   = -13;
 
     if      (input.left && !input.right) { this.vx = -SPEED; this.facing = -1; }
     else if (input.right && !input.left) { this.vx = SPEED;  this.facing =  1; }
-    else if (input.left && input.right)    this.vx = this.facing * SPEED; // 左右同时 → 沿上次移动方向
+    else if (input.left && input.right)    this.vx = this.facing * SPEED;
     else                                   this.vx *= FRIC;
 
     if (input.jump && !this.jumping) { this.vy = JUMP; this.jumping = true; }
@@ -338,7 +459,6 @@ class Character {
     if (this.x < -this.w) this.x = CW;
     if (this.x > CW)      this.x = -this.w;
 
-    // 醉酒时摇晃幅度加倍
     this.sway += SLOW ? 0.09 : 0.045;
 
     this.walkTick++;
@@ -346,8 +466,9 @@ class Character {
       if (this.walkTick % 9 === 0) this.walkFrame = (this.walkFrame + 1) % 4;
     } else { this.walkFrame = 0; }
 
-    if (this.hurtFrames > 0)  this.hurtFrames--;
-    if (this.slowFrames > 0)  this.slowFrames--;
+    if (this.hurtFrames > 0) this.hurtFrames--;
+    if (this.slowFrames > 0) this.slowFrames--;
+    if (this.godFrames > 0)  this.godFrames--;
   }
 
   hurt() {
@@ -356,9 +477,7 @@ class Character {
     return true;
   }
 
-  slowDown() {
-    this.slowFrames = this.SLOW_DUR;
-  }
+  slowDown() { this.slowFrames = this.SLOW_DUR; }
 
   stun() {
     this.stunFrames = this.STUN_DUR;
@@ -366,16 +485,21 @@ class Character {
     this.vx = 0;
   }
 
+  godMode() {
+    this.godFrames  = this.GOD_DUR;
+    this.slowFrames = 0;
+    this.stunFrames = 0;
+  }
+
   bounds() { return { x: this.x + 7, y: this.y + 4, w: this.w - 14, h: this.h - 4 }; }
 
   draw(ctx) {
-    // 断片眩晕：横躺在地 + 轨道星星
     if (this.stunFrames > 0) {
       const cx = this.x + this.w / 2;
       const gy = GROUND_Y - 16;
       ctx.save();
       ctx.translate(cx, gy);
-      ctx.rotate(Math.PI / 2); // 向右倒下，头朝右
+      ctx.rotate(Math.PI / 2);
       this._drawBody(ctx);
       ctx.restore();
       ctx.save();
@@ -393,8 +517,20 @@ class Character {
       ctx.save(); ctx.globalAlpha = 0.15;
     } else { ctx.save(); }
 
+    // 酒神金色光环
+    if (this.godFrames > 0) {
+      const pulse = 0.5 + 0.5 * Math.sin(this.sway * 3);
+      const glow = ctx.createRadialGradient(
+        this.x + this.w / 2, this.y + this.h / 2, 5,
+        this.x + this.w / 2, this.y + this.h / 2, 48
+      );
+      glow.addColorStop(0, `rgba(255,215,0,${0.45 * pulse})`);
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(this.x + this.w / 2, this.y + this.h / 2, 48, 0, Math.PI * 2); ctx.fill();
+    }
     // 醉酒紫色光晕
-    if (this.slowFrames > 0) {
+    else if (this.slowFrames > 0) {
       const glow = ctx.createRadialGradient(
         this.x + this.w / 2, this.y + this.h / 2, 5,
         this.x + this.w / 2, this.y + this.h / 2, 38
@@ -402,9 +538,7 @@ class Character {
       glow.addColorStop(0, 'rgba(148,0,211,0.35)');
       glow.addColorStop(1, 'transparent');
       ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.arc(this.x + this.w / 2, this.y + this.h / 2, 38, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(this.x + this.w / 2, this.y + this.h / 2, 38, 0, Math.PI * 2); ctx.fill();
     }
 
     ctx.translate(this.x + this.w / 2, this.y + this.h);
@@ -413,8 +547,10 @@ class Character {
     ctx.scale(this.facing, 1);
     this._drawBody(ctx);
 
-    // 醉酒状态图标
-    if (this.slowFrames > 0) {
+    if (this.godFrames > 0) {
+      ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('🍷', 2, -this.h - 10);
+    } else if (this.slowFrames > 0) {
       ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('🌀', 2, -this.h - 10);
     }
@@ -466,7 +602,7 @@ class Character {
 // ============================================================
 // Main Game
 // ============================================================
-const STATE = { MENU: 0, PLAYING: 1, LEVEL_WIN: 2, GAME_OVER: 3, ENDING: 4 };
+const STATE = { MENU: 0, PLAYING: 1, LEVEL_WIN: 2, GAME_OVER: 3, ENDING: 4, LEVEL_SELECT: 5, INSTRUCTIONS: 6 };
 
 class DrunkardGame {
   constructor() {
@@ -484,9 +620,13 @@ class DrunkardGame {
     this.particles = [];
     this.fireworks = [];
     this.drunkMen  = [];
+    this.bottles   = [];
     this.spawnTick = 0;
     this.stateTick = 0;
     this._lastTap  = { x: CW / 2, y: CH / 2 };
+    this._menuBtns = [];
+    this._levelSelectBtns = [];
+    this._levelSelectBackBtn = null;
 
     this.input = { left: false, right: false, jump: false };
     this.stars     = this._genStars(75);
@@ -543,8 +683,17 @@ class DrunkardGame {
           this._onAction();
         }
       }
-      if (e.key === 'Enter') { this._lastTap = { x: CW / 4,     y: CH / 2 }; this._onAction(); }
-      if (e.key === 'Escape'){ this._lastTap = { x: CW * 3 / 4, y: CH / 2 }; this._onAction(); }
+      if (e.key === 'Enter') { this._lastTap = { x: CW / 4, y: CH / 2 }; this._onAction(); }
+      if (e.key === 'Escape') {
+        if (this.state === STATE.LEVEL_SELECT || this.state === STATE.INSTRUCTIONS) {
+          this.state = STATE.MENU; this.stateTick = 0; return;
+        }
+        this._lastTap = { x: CW * 3 / 4, y: CH / 2 }; this._onAction();
+      }
+      // 数字键在选关页面直接选关
+      if (this.state === STATE.LEVEL_SELECT && e.key >= '1' && e.key <= '7') {
+        this._startFromLevel(parseInt(e.key) - 1);
+      }
     });
     document.addEventListener('keyup', (e) => {
       if (e.key === 'ArrowLeft'  || e.key === 'a' || e.key === 'A') this.input.left  = false;
@@ -556,6 +705,18 @@ class DrunkardGame {
       e.preventDefault();
       const rect = this.canvas.getBoundingClientRect();
       const scaleX = CW / rect.width, scaleY = CH / rect.height;
+
+      // 非游戏状态：只记录点击位置并触发 action
+      if (this.state !== STATE.PLAYING) {
+        if (e.touches.length > 0) {
+          const t = e.touches[0];
+          this._lastTap = { x: (t.clientX - rect.left) * scaleX, y: (t.clientY - rect.top) * scaleY };
+          this._onAction();
+        }
+        return;
+      }
+
+      // 游戏中：方向控制
       this.input.left = false; this.input.right = false;
       for (const t of e.touches) {
         const tx = (t.clientX - rect.left) * scaleX;
@@ -570,7 +731,6 @@ class DrunkardGame {
           this._onAction();
         }
       }
-      // 左右同时按下 → 跳跃
       if (this.input.left && this.input.right) {
         this.input.jump = true;
         this._onAction();
@@ -585,13 +745,47 @@ class DrunkardGame {
   }
 
   _onAction() {
-    if      (this.state === STATE.MENU)                              this._startGame();
-    else if (this.state === STATE.LEVEL_WIN  && this.stateTick > 70) this._nextLevel();
-    else if (this.state === STATE.GAME_OVER  && this.stateTick > 70) {
-      if (this._lastTap.x < CW / 2) this._restartLevel();       // 左：重玩本关
-      else { this.state = STATE.MENU; this.stateTick = 0; }      // 右：退出到主菜单
+    const tap = this._lastTap;
+
+    if (this.state === STATE.MENU) {
+      for (const btn of this._menuBtns) {
+        if (tap.x >= btn.x && tap.x <= btn.x + btn.w && tap.y >= btn.y && tap.y <= btn.y + btn.h) {
+          if      (btn.action === 'start')        this._startGame();
+          else if (btn.action === 'levelSelect')  { this.state = STATE.LEVEL_SELECT; this.stateTick = 0; }
+          else if (btn.action === 'instructions') { this.state = STATE.INSTRUCTIONS; this.stateTick = 0; }
+          return;
+        }
+      }
+      // 键盘 Enter 默认开始游戏
+      this._startGame();
+      return;
     }
-    else if (this.state === STATE.ENDING     && this.stateTick > 70) this._startGame();
+
+    if (this.state === STATE.LEVEL_SELECT) {
+      for (const btn of this._levelSelectBtns) {
+        if (tap.x >= btn.x && tap.x <= btn.x + btn.w && tap.y >= btn.y && tap.y <= btn.y + btn.h) {
+          this._startFromLevel(btn.idx);
+          return;
+        }
+      }
+      const back = this._levelSelectBackBtn;
+      if (back && tap.x >= back.x && tap.x <= back.x + back.w && tap.y >= back.y && tap.y <= back.y + back.h) {
+        this.state = STATE.MENU; this.stateTick = 0;
+      }
+      return;
+    }
+
+    if (this.state === STATE.INSTRUCTIONS) {
+      this.state = STATE.MENU; this.stateTick = 0;
+      return;
+    }
+
+    if (this.state === STATE.LEVEL_WIN && this.stateTick > 70) this._nextLevel();
+    else if (this.state === STATE.GAME_OVER && this.stateTick > 70) {
+      if (tap.x < CW / 2) this._restartLevel();
+      else { this.state = STATE.MENU; this.stateTick = 0; }
+    }
+    else if (this.state === STATE.ENDING && this.stateTick > 70) this._startGame();
   }
 
   // ----------------------------------------------------------
@@ -601,10 +795,17 @@ class DrunkardGame {
     this._initLevel();
   }
 
+  _startFromLevel(idx) {
+    this.levelIdx = idx; this.lives = 3; this.combo = 0; this.fireworks = [];
+    this.state = STATE.PLAYING; this.stateTick = 0;
+    this._initLevel();
+  }
+
   _initLevel() {
     this.wealth = 0; this.combo = 0;
     this.items = []; this.particles = []; this.spawnTick = 0;
     this.drunkMen = []; this.drunkmanTick = 0;
+    this.bottles = [];
     this.character = new Character();
     this.input = { left: false, right: false, jump: false };
   }
@@ -627,7 +828,6 @@ class DrunkardGame {
   }
 
   // ----------------------------------------------------------
-  // COMBO 乘数: 5连×2, 10连×3, 20连×5  ── 加大技巧激励
   _comboMult() {
     if (this.combo >= 20) return 5;
     if (this.combo >= 10) return 3;
@@ -639,15 +839,23 @@ class DrunkardGame {
     const lv = LEVELS[this.levelIdx];
     const x  = 28 + Math.random() * (CW - 56);
     const r  = Math.random();
-    if (r < lv.bombChance) {
-      this.items.push(new FallingItem(x, null, lv.fallSpeed, 'bomb'));
-    } else if (r < lv.bombChance + lv.drunkChance) {
-      this.items.push(new FallingItem(x, null, lv.fallSpeed, 'drunk'));
-    } else {
-      let def = pickPosItem();
-      if (def.isHeart && this.lives >= 3) def = pickPosItem();
-      this.items.push(new FallingItem(x, def, lv.fallSpeed, 'positive'));
-    }
+    let threshold = 0;
+
+    threshold += lv.bombChance;
+    if (r < threshold) { this.items.push(new FallingItem(x, null, lv.fallSpeed, 'bomb')); return; }
+
+    threshold += lv.drunkChance;
+    if (r < threshold) { this.items.push(new FallingItem(x, null, lv.fallSpeed, 'drunk')); return; }
+
+    threshold += lv.cheersChance;
+    if (r < threshold) { this.items.push(new FallingItem(x, null, lv.fallSpeed, 'cheers')); return; }
+
+    threshold += lv.godModeChance;
+    if (r < threshold) { this.items.push(new FallingItem(x, null, lv.fallSpeed, 'godmode')); return; }
+
+    let def = pickPosItem(lv);
+    if (def.isHeart && this.lives >= 3) def = pickPosItem(lv);
+    this.items.push(new FallingItem(x, def, lv.fallSpeed, 'positive'));
   }
 
   // ----------------------------------------------------------
@@ -663,6 +871,10 @@ class DrunkardGame {
     if (this.state !== STATE.PLAYING) return;
 
     const lv = LEVELS[this.levelIdx];
+
+    // 关卡提示暂停（前120帧）
+    if (lv.hint && this.stateTick <= 120) return;
+
     this.character.update(this.input);
     this.input.jump = false;
 
@@ -673,6 +885,7 @@ class DrunkardGame {
       if (lv.multi && Math.random() < 0.42) this._spawnItem();
     }
 
+    // 道具碰撞
     for (let i = this.items.length - 1; i >= 0; i--) {
       const item = this.items[i];
       item.update();
@@ -681,23 +894,49 @@ class DrunkardGame {
         item.collected = true;
 
         if (item.isBomb) {
-          if (this.character.hurt()) {
-            this.combo = 0;
-            this.lives--;
+          if (this.character.godFrames > 0) {
+            this.particles.push(new Particle(item.x, item.y - 20, '🛡️ 免疫！', '#66FFFF'));
+          } else if (this.character.hurt()) {
+            this.combo = 0; this.lives--;
             this.particles.push(new Particle(item.x, item.y - 20, '-1❤️  连击中断！', '#FF5555'));
             if (this.lives <= 0) { this.state = STATE.GAME_OVER; this.stateTick = 0; }
           }
         } else if (item.isDrunk) {
-          this.combo = 0;
-          if (this.character.slowFrames > 0 || this.character.stunFrames > 0) {
-            // 二次中招：断片眩晕
-            this.character.stun();
-            this.particles.push(new Particle(item.x, item.y - 20, '💫 断片！眩晕3秒！', '#FF44FF'));
+          if (this.character.godFrames > 0) {
+            this.particles.push(new Particle(item.x, item.y - 20, '🛡️ 免疫！', '#66FFFF'));
           } else {
-            // 首次：醉酒减速
-            this.character.slowDown();
-            this.particles.push(new Particle(item.x, item.y - 20, '🍶 行动迟缓！连击↓0', '#BB66FF'));
+            this.combo = 0;
+            if (this.character.slowFrames > 0 || this.character.stunFrames > 0) {
+              this.character.stun();
+              this.particles.push(new Particle(item.x, item.y - 20, '💫 断片！眩晕3秒！', '#FF44FF'));
+            } else {
+              this.character.slowDown();
+              this.particles.push(new Particle(item.x, item.y - 20, '🍶 行动迟缓！连击↓0', '#BB66FF'));
+            }
           }
+        } else if (item.type === 'cheers') {
+          // 干杯：清屏转金币
+          let totalValue = 0, count = 0;
+          for (const fi of this.items) {
+            if (fi === item || fi.collected) continue;
+            fi.collected = true; count++;
+            if (fi.type === 'positive' && fi.def) {
+              totalValue += fi.def.isHeart ? 8 : fi.def.value;
+            }
+            this.particles.push(new Particle(fi.x, fi.y, '✨', '#FFD700'));
+          }
+          for (const dm of this.drunkMen) {
+            dm.hit = true; totalValue += 10; count++;
+            this.particles.push(new Particle(dm.x + dm.w / 2, dm.y, '✨', '#FFD700'));
+          }
+          for (const b of this.bottles) { b.collected = true; count++; }
+          this.wealth += totalValue;
+          this.combo  += Math.max(count, 1);
+          this.particles.push(new Particle(item.x, item.y - 20, `🍻干杯！+¥${totalValue}`, '#FF6600'));
+          if (this.wealth >= lv.price) { this.state = STATE.LEVEL_WIN; this.stateTick = 0; this.character.celebrating = true; }
+        } else if (item.type === 'godmode') {
+          this.character.godMode();
+          this.particles.push(new Particle(item.x, item.y - 20, '🍷 酒神降临！8秒无敌！', '#FFD700'));
         } else if (item.def.isHeart) {
           this.combo++;
           if (this.lives < 3) {
@@ -714,10 +953,10 @@ class DrunkardGame {
           const earned = Math.round(item.def.value * mult);
           this.wealth += earned;
           let txt, color;
-          if      (mult >= 5)   { txt = `+¥${earned} 🔥×5`;  color = '#FF2200'; }
-          else if (mult >= 3)   { txt = `+¥${earned} 🔥×3`;  color = '#FF6600'; }
-          else if (mult >= 2)   { txt = `+¥${earned} ×2`;    color = '#FFA500'; }
-          else                  { txt = `+¥${earned}`;        color = '#FFD700'; }
+          if      (mult >= 5) { txt = `+¥${earned} 🔥×5`; color = '#FF2200'; }
+          else if (mult >= 3) { txt = `+¥${earned} 🔥×3`; color = '#FF6600'; }
+          else if (mult >= 2) { txt = `+¥${earned} ×2`;   color = '#FFA500'; }
+          else                { txt = `+¥${earned}`;       color = '#FFD700'; }
           this.particles.push(new Particle(item.x, item.y - 20, txt, color));
           if (this.wealth >= lv.price) { this.state = STATE.LEVEL_WIN; this.stateTick = 0; this.character.celebrating = true; }
         }
@@ -726,7 +965,7 @@ class DrunkardGame {
       if (item.offScreen() || item.collected) this.items.splice(i, 1);
     }
 
-    // 醉汉（第3关起）
+    // 醉汉
     if (lv.drunkman && this.drunkMen.length === 0) {
       this.drunkmanTick++;
       if (this.drunkmanTick >= lv.drunkmanInterval) {
@@ -737,19 +976,46 @@ class DrunkardGame {
     for (let i = this.drunkMen.length - 1; i >= 0; i--) {
       const dm = this.drunkMen[i];
       dm.update();
+
+      // 酒瓶投掷
+      if (lv.bottleThrow && dm.shouldThrow()) {
+        const hand = dm.getHandPos();
+        this.bottles.push(new Bottle(hand.x, hand.y,
+          this.character.x + this.character.w / 2,
+          this.character.y + this.character.h / 2));
+        this.particles.push(new Particle(hand.x, hand.y - 10, '🍾', '#229944'));
+      }
+
       if (dm.hits(this.character)) {
         dm.hit = true;
-        if (this.character.hurt()) {
-          this.combo = 0;
-          this.lives--;
+        if (this.character.godFrames > 0) {
+          this.particles.push(new Particle(dm.x + dm.w / 2, dm.y, '🛡️ 免疫！', '#66FFFF'));
+        } else if (this.character.hurt()) {
+          this.combo = 0; this.lives--;
           this.particles.push(new Particle(
             this.character.x + this.character.w / 2,
-            this.character.y - 20, '🥴 被醉汉撞倒！', '#FF5555'
-          ));
+            this.character.y - 20, '🥴 被醉汉撞倒！', '#FF5555'));
           if (this.lives <= 0) { this.state = STATE.GAME_OVER; this.stateTick = 0; }
         }
       }
       if (dm.offScreen() || dm.hit) this.drunkMen.splice(i, 1);
+    }
+
+    // 酒瓶
+    for (let i = this.bottles.length - 1; i >= 0; i--) {
+      const b = this.bottles[i];
+      b.update();
+      if (!b.collected && b.hits(this.character)) {
+        b.collected = true;
+        if (this.character.godFrames > 0) {
+          this.particles.push(new Particle(b.x, b.y - 20, '🛡️ 免疫！', '#66FFFF'));
+        } else if (this.character.hurt()) {
+          this.combo = 0; this.lives--;
+          this.particles.push(new Particle(b.x, b.y - 20, '🍾 被砸中！-1❤️', '#FF5555'));
+          if (this.lives <= 0) { this.state = STATE.GAME_OVER; this.stateTick = 0; }
+        }
+      }
+      if (b.offScreen() || b.collected) this.bottles.splice(i, 1);
     }
   }
 
@@ -774,12 +1040,14 @@ class DrunkardGame {
   _draw() {
     const ctx = this.ctx;
     this._drawBg(ctx);
-    if      (this.state === STATE.MENU)    this._drawMenu(ctx);
-    else if (this.state === STATE.ENDING)  this._drawEnding(ctx);
+    if      (this.state === STATE.MENU)          this._drawMenu(ctx);
+    else if (this.state === STATE.LEVEL_SELECT)  this._drawLevelSelect(ctx);
+    else if (this.state === STATE.INSTRUCTIONS)  this._drawInstructions(ctx);
+    else if (this.state === STATE.ENDING)        this._drawEnding(ctx);
     else {
       this._drawGame(ctx);
-      if (this.state === STATE.LEVEL_WIN) this._drawLevelWin(ctx);
-      if (this.state === STATE.GAME_OVER) this._drawGameOver(ctx);
+      if (this.state === STATE.LEVEL_WIN)  this._drawLevelWin(ctx);
+      if (this.state === STATE.GAME_OVER)  this._drawGameOver(ctx);
     }
   }
 
@@ -821,10 +1089,33 @@ class DrunkardGame {
   _drawGame(ctx) {
     for (const item of this.items) item.draw(ctx);
     for (const dm of this.drunkMen) dm.draw(ctx);
+    for (const b of this.bottles) b.draw(ctx);
     this.character.draw(ctx);
     for (const p of this.particles) p.draw(ctx);
     this._drawHUD(ctx);
     this._drawTouchHints(ctx);
+
+    // 关卡提示叠加层
+    const lv = LEVELS[this.levelIdx];
+    if (lv.hint && this.stateTick <= 120) this._drawLevelHint(ctx, lv);
+  }
+
+  _drawLevelHint(ctx, lv) {
+    const alpha = this.stateTick < 15 ? this.stateTick / 15
+                : this.stateTick > 90 ? (120 - this.stateTick) / 30
+                : 1;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(0, 0, CW, CH);
+    const cx = CW / 2, cy = CH * 0.38;
+    ctx.fillStyle = '#FFD700'; ctx.font = 'bold 32px Arial, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(`第 ${lv.id} 关`, cx, cy - 50);
+    ctx.font = '48px serif'; ctx.fillText(lv.icon, cx, cy + 10);
+    ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 20px Arial, sans-serif';
+    ctx.fillText(lv.alcohol, cx, cy + 50);
+    ctx.fillStyle = '#FFAA00'; ctx.font = 'bold 18px Arial, sans-serif';
+    ctx.fillText(lv.hint, cx, cy + 100);
+    ctx.restore();
   }
 
   _drawHUD(ctx) {
@@ -832,7 +1123,8 @@ class DrunkardGame {
     const hasCombo = this.combo >= 3;
     const isSlow   = this.character.slowFrames > 0;
     const isStun   = this.character.stunFrames > 0;
-    const hudH     = (hasCombo || isSlow || isStun) ? HUD_H : HUD_H - 16;
+    const isGod    = this.character.godFrames > 0;
+    const hudH     = (hasCombo || isSlow || isStun || isGod) ? HUD_H : HUD_H - 16;
 
     ctx.fillStyle = 'rgba(0,0,0,0.68)'; ctx.fillRect(0, 0, CW, hudH);
 
@@ -856,8 +1148,12 @@ class DrunkardGame {
     for (let i = 0; i < 3; i++) hearts += (i < this.lives) ? '❤️' : '🖤';
     ctx.fillText(hearts, CW / 2, 64);
 
-    // 状态行：断片 > 醉酒减速 > COMBO
-    if (isStun) {
+    // 状态行：酒神 > 断片 > 醉酒减速 > COMBO
+    if (isGod) {
+      const secLeft = Math.ceil(this.character.godFrames / 60);
+      ctx.fillStyle = '#FFD700'; ctx.font = 'bold 12px Arial, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(`🍷 酒神模式  剩余 ${secLeft}s`, CW / 2, hudH - 3);
+    } else if (isStun) {
       const secLeft = Math.ceil(this.character.stunFrames / 60);
       ctx.fillStyle = '#FF44FF'; ctx.font = 'bold 12px Arial, sans-serif'; ctx.textAlign = 'center';
       ctx.fillText(`💫 断片眩晕  剩余 ${secLeft}s`, CW / 2, hudH - 3);
@@ -887,43 +1183,158 @@ class DrunkardGame {
   _drawMenu(ctx) {
     ctx.fillStyle = 'rgba(0,0,0,0.52)'; ctx.fillRect(0, 0, CW, CH);
     const cx = CW / 2;
-    const cardX = 18, cardY = CH * 0.06, cardW = CW - 36, cardH = CH * 0.86;
+    const cardX = 30, cardY = CH * 0.10, cardW = CW - 60, cardH = CH * 0.75;
 
     ctx.fillStyle = 'rgba(10,10,35,0.95)'; rRect(ctx, cardX, cardY, cardW, cardH, 18); ctx.fill();
     ctx.strokeStyle = '#DAA520'; ctx.lineWidth = 2; rRect(ctx, cardX, cardY, cardW, cardH, 18); ctx.stroke();
 
     ctx.fillStyle = '#FFD700'; ctx.font = 'bold 38px Arial, sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('醉翁觅酒', cx, cardY + 52);
+    ctx.fillText('醉翁觅酒', cx, cardY + 60);
     ctx.fillStyle = '#AAAAAA'; ctx.font = '13px Arial, sans-serif';
-    ctx.fillText("The Drunkard's Quest", cx, cardY + 74);
-    ctx.font = '60px serif'; ctx.fillText('🍺', cx, cardY + 142);
+    ctx.fillText("The Drunkard's Quest", cx, cardY + 84);
+    ctx.font = '60px serif'; ctx.fillText('🍺', cx, cardY + 160);
 
-    const lines = [
-      '你是一个爱酒如命的醉翁 🥴',
-      '收集空中掉落的金币，凑够钱买酒！',
-      '',
-      '💣  炸弹：-1命，连击归零',
-      '🍶  醉酒：移速↓5s  再中→断片躺倒3s',
-      '🥴  醉汉（第3关起）：跳跃躲避，撞到-1命',
-      '❤️  血格：回复1命（满血转¥8）',
-      '',
-      '🔥  COMBO: 5连×2 / 10连×3 / 20连×5',
-      '✅  通关后自动恢复满血！',
-    ];
     ctx.fillStyle = '#CCCCCC'; ctx.font = '13px Arial, sans-serif';
-    lines.forEach((l, i) => ctx.fillText(l, cx, cardY + 182 + i * 22));
+    ctx.fillText('收集金币，凑够钱买酒！', cx, cardY + 200);
 
-    ctx.fillStyle = '#888888'; ctx.font = '12px Arial, sans-serif';
-    ctx.fillText('← → 移动  |  空格/↑ 跳跃', cx, cardY + 420);
-    ctx.fillText('触屏：左← 右→ 中间↑', cx, cardY + 438);
+    // 三个按钮
+    this._menuBtns = [];
+    const btnW = cardW - 50, btnH = 46, btnGap = 18;
+    const btnX = cardX + 25;
+    const btn1Y = cardY + 232;
+
+    const buttons = [
+      { label: '开始游戏  →',  action: 'start',        bg: '#DAA520', fg: '#1a1a00' },
+      { label: '选择关卡  📋', action: 'levelSelect',  bg: '#4a6a8a', fg: '#FFFFFF' },
+      { label: '游戏说明  ❓', action: 'instructions', bg: '#555555', fg: '#FFFFFF' },
+    ];
+
+    buttons.forEach((btn, i) => {
+      const by = btn1Y + i * (btnH + btnGap);
+      this._menuBtns.push({ x: btnX, y: by, w: btnW, h: btnH, action: btn.action });
+      ctx.fillStyle = btn.bg; rRect(ctx, btnX, by, btnW, btnH, 23); ctx.fill();
+      ctx.fillStyle = btn.fg; ctx.font = 'bold 17px Arial, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(btn.label, cx, by + 29);
+    });
 
     ctx.fillStyle = '#FFD700'; ctx.font = 'bold 13px Arial, sans-serif';
-    ctx.fillText(`共 ${LEVELS.length} 关，最终目标：飞天茅台 ✨`, cx, cardY + 462);
+    ctx.fillText(`共 ${LEVELS.length} 关，最终目标：飞天茅台 ✨`, cx, cardY + cardH - 24);
+  }
 
+  // ----------------------------------------------------------
+  _drawLevelSelect(ctx) {
+    ctx.fillStyle = 'rgba(0,0,0,0.52)'; ctx.fillRect(0, 0, CW, CH);
+    const cx = CW / 2;
+    const cardX = 14, cardY = CH * 0.06, cardW = CW - 28, cardH = CH * 0.88;
+
+    ctx.fillStyle = 'rgba(10,10,35,0.95)'; rRect(ctx, cardX, cardY, cardW, cardH, 18); ctx.fill();
+    ctx.strokeStyle = '#DAA520'; ctx.lineWidth = 2; rRect(ctx, cardX, cardY, cardW, cardH, 18); ctx.stroke();
+
+    ctx.fillStyle = '#FFD700'; ctx.font = 'bold 26px Arial, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('选择关卡', cx, cardY + 40);
+
+    this._levelSelectBtns = [];
+    const cols = 3, bw = 96, bh = 84, gapX = 14, gapY = 14;
+    const totalW = cols * bw + (cols - 1) * gapX;
+    const startX = cx - totalW / 2;
+    const startY = cardY + 65;
+
+    LEVELS.forEach((lv, idx) => {
+      const col = idx % cols;
+      const row = Math.floor(idx / cols);
+      const bx = startX + col * (bw + gapX);
+      const by = startY + row * (bh + gapY);
+
+      this._levelSelectBtns.push({ x: bx, y: by, w: bw, h: bh, idx });
+
+      ctx.fillStyle = 'rgba(30,30,60,0.9)';
+      rRect(ctx, bx, by, bw, bh, 10); ctx.fill();
+      ctx.strokeStyle = '#DAA520'; ctx.lineWidth = 1;
+      rRect(ctx, bx, by, bw, bh, 10); ctx.stroke();
+
+      ctx.font = '28px serif'; ctx.textAlign = 'center';
+      ctx.fillText(lv.icon, bx + bw / 2, by + 32);
+      ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 12px Arial, sans-serif';
+      ctx.fillText(`第${lv.id}关`, bx + bw / 2, by + 52);
+      ctx.fillStyle = '#DAA520'; ctx.font = '11px Arial, sans-serif';
+      ctx.fillText(`¥${lv.price}`, bx + bw / 2, by + 70);
+    });
+
+    // 返回按钮
     const btnY = cardY + cardH - 52;
-    ctx.fillStyle = '#DAA520'; rRect(ctx, cardX + 35, btnY, cardW - 70, 42, 21); ctx.fill();
-    ctx.fillStyle = '#1a1a00'; ctx.font = 'bold 18px Arial, sans-serif';
-    ctx.fillText('开始游戏  →', cx, btnY + 27);
+    const backBtn = { x: cardX + 35, y: btnY, w: cardW - 70, h: 40 };
+    this._levelSelectBackBtn = backBtn;
+    ctx.fillStyle = '#555555'; rRect(ctx, backBtn.x, backBtn.y, backBtn.w, backBtn.h, 20); ctx.fill();
+    ctx.strokeStyle = '#888888'; ctx.lineWidth = 1.5; rRect(ctx, backBtn.x, backBtn.y, backBtn.w, backBtn.h, 20); ctx.stroke();
+    ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 16px Arial, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('← 返回', cx, backBtn.y + 26);
+  }
+
+  // ----------------------------------------------------------
+  _drawInstructions(ctx) {
+    ctx.fillStyle = 'rgba(0,0,0,0.52)'; ctx.fillRect(0, 0, CW, CH);
+    const cx = CW / 2;
+    const cardX = 14, cardY = CH * 0.03, cardW = CW - 28, cardH = CH * 0.94;
+
+    ctx.fillStyle = 'rgba(10,10,35,0.97)'; rRect(ctx, cardX, cardY, cardW, cardH, 18); ctx.fill();
+    ctx.strokeStyle = '#DAA520'; ctx.lineWidth = 2; rRect(ctx, cardX, cardY, cardW, cardH, 18); ctx.stroke();
+
+    ctx.fillStyle = '#FFD700'; ctx.font = 'bold 26px Arial, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('游戏说明', cx, cardY + 38);
+
+    let y = cardY + 64;
+    const lh = 19;
+    const section = (title) => {
+      ctx.fillStyle = '#DAA520'; ctx.font = 'bold 13px Arial, sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText(title, cardX + 20, y); y += lh + 2;
+    };
+    const line = (text, color) => {
+      ctx.fillStyle = color || '#CCCCCC'; ctx.font = '12px Arial, sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText(text, cardX + 24, y); y += lh;
+    };
+
+    section('— 基本玩法 —');
+    line('收集空中掉落的金币，凑够钱买酒通关！');
+    line('共7关，最终目标：飞天茅台 ✨');
+    y += 4;
+
+    section('— 操作方式 —');
+    line('键盘：← → 移动 | 空格/↑ 跳跃');
+    line('触屏：左侧←  右侧→  中间↑跳跃');
+    y += 4;
+
+    section('— 金币 —');
+    line('¥1  ¥2  ¥4    基础金币');
+    line('💰 ¥12  金袋    🍀 ¥20  幸运草（第2关起）');
+    line('❤️ 回血：回复1命（满血时+¥8）（第2关起）');
+    y += 4;
+
+    section('— 危险道具 —');
+    line('💣 炸弹：-1命，连击归零（第2关起）', '#FF6666');
+    line('🍶 醉酒：减速5秒，再中→断片3秒（第2关起）', '#BB66FF');
+    y += 4;
+
+    section('— 特殊道具 —');
+    line('🍻 干杯：清除屏幕所有物品转为金币（第4关起）', '#FFA500');
+    line('🍷 酒神：8秒无敌，免疫一切伤害（第6关起）', '#FFD700');
+    y += 4;
+
+    section('— 敌人 —');
+    line('🥴 醉汉（第3关起）：横穿屏幕，撞到-1命', '#FF8888');
+    line('🍾 飞瓶（第5关起）：醉汉扔瓶子，被砸-1命', '#FF8888');
+    y += 4;
+
+    section('— 连击系统 —');
+    line('连续接住金币触发COMBO加成：');
+    line('5连×2  |  10连×3  |  20连×5', '#FFA500');
+    y += 4;
+
+    section('— 提示 —');
+    line('通关后自动恢复满血 ❤️❤️❤️');
+
+    // 返回提示
+    ctx.fillStyle = '#666666'; ctx.font = '12px Arial, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('点击任意位置返回', cx, cardY + cardH - 18);
   }
 
   // ----------------------------------------------------------
