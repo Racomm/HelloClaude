@@ -727,9 +727,9 @@ class DrunkardGame {
     }
 
     // 醉汉（第3关起）
-    if (lv.drunkman) {
+    if (lv.drunkman && this.drunkMen.length === 0) {
       this.drunkmanTick++;
-      if (this.drunkmanTick >= lv.drunkmanInterval && this.drunkMen.length === 0) {
+      if (this.drunkmanTick >= lv.drunkmanInterval) {
         this.drunkmanTick = 0;
         this.drunkMen.push(new DrunkMan(Math.random() < 0.5, lv.drunkmanSpeed));
       }
