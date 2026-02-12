@@ -211,7 +211,7 @@ class DrunkMan {
   }
 
   offScreen() {
-    return this.dir > 0 ? this.x > CW + 10 : this.x < -this.w - 10;
+    return this.x > CW + 10 || this.x < -this.w - 10;
   }
 
   hits(char) {
