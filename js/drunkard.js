@@ -420,7 +420,7 @@ class Character {
     this.stunFrames = 0;
     this.STUN_DUR   = 180;
     this.godFrames  = 0;
-    this.GOD_DUR    = 480; // 8秒 @ 60fps
+    this.GOD_DUR    = 300; // 5秒 @ 60fps
     this.celebrating = false;
   }
 
@@ -829,9 +829,9 @@ class DrunkardGame {
 
   // ----------------------------------------------------------
   _comboMult() {
-    if (this.combo >= 20) return 5;
-    if (this.combo >= 10) return 3;
-    if (this.combo >= 5)  return 2;
+    if (this.combo >= 20) return 10;
+    if (this.combo >= 10) return 5;
+    if (this.combo >= 5)  return 3;
     return 1;
   }
 
@@ -895,7 +895,8 @@ class DrunkardGame {
 
         if (item.isBomb) {
           if (this.character.godFrames > 0) {
-            this.particles.push(new Particle(item.x, item.y - 20, '🛡️ 免疫！', '#66FFFF'));
+            const bv = 5; this.wealth += bv; this.combo++;
+            this.particles.push(new Particle(item.x, item.y - 20, `+¥${bv}`, '#66FFFF'));
           } else if (this.character.hurt()) {
             this.combo = 0; this.lives--;
             this.particles.push(new Particle(item.x, item.y - 20, '-1❤️  连击中断！', '#FF5555'));
@@ -903,7 +904,8 @@ class DrunkardGame {
           }
         } else if (item.isDrunk) {
           if (this.character.godFrames > 0) {
-            this.particles.push(new Particle(item.x, item.y - 20, '🛡️ 免疫！', '#66FFFF'));
+            const dv = 3; this.wealth += dv; this.combo++;
+            this.particles.push(new Particle(item.x, item.y - 20, `+¥${dv}`, '#66FFFF'));
           } else {
             this.combo = 0;
             if (this.character.slowFrames > 0 || this.character.stunFrames > 0) {
@@ -936,7 +938,7 @@ class DrunkardGame {
           if (this.wealth >= lv.price) { this.state = STATE.LEVEL_WIN; this.stateTick = 0; this.character.celebrating = true; }
         } else if (item.type === 'godmode') {
           this.character.godMode();
-          this.particles.push(new Particle(item.x, item.y - 20, '🍷 酒神降临！8秒无敌！', '#FFD700'));
+          this.particles.push(new Particle(item.x, item.y - 20, '🍷 酒神降临！5秒无敌！', '#FFD700'));
         } else if (item.def.isHeart) {
           this.combo++;
           if (this.lives < 3) {
@@ -989,7 +991,8 @@ class DrunkardGame {
       if (dm.hits(this.character)) {
         dm.hit = true;
         if (this.character.godFrames > 0) {
-          this.particles.push(new Particle(dm.x + dm.w / 2, dm.y, '🛡️ 免疫！', '#66FFFF'));
+          const dmv = 10; this.wealth += dmv; this.combo++;
+          this.particles.push(new Particle(dm.x + dm.w / 2, dm.y, `+¥${dmv}`, '#66FFFF'));
         } else if (this.character.hurt()) {
           this.combo = 0; this.lives--;
           this.particles.push(new Particle(
@@ -1008,7 +1011,8 @@ class DrunkardGame {
       if (!b.collected && b.hits(this.character)) {
         b.collected = true;
         if (this.character.godFrames > 0) {
-          this.particles.push(new Particle(b.x, b.y - 20, '🛡️ 免疫！', '#66FFFF'));
+          const btv = 5; this.wealth += btv; this.combo++;
+          this.particles.push(new Particle(b.x, b.y - 20, `+¥${btv}`, '#66FFFF'));
         } else if (this.character.hurt()) {
           this.combo = 0; this.lives--;
           this.particles.push(new Particle(b.x, b.y - 20, '🍾 被砸中！-1❤️', '#FF5555'));
@@ -1316,7 +1320,7 @@ class DrunkardGame {
 
     section('— 特殊道具 —');
     line('🍻 干杯：清除屏幕所有物品转为金币（第4关起）', '#FFA500');
-    line('🍷 酒神：8秒无敌，免疫一切伤害（第6关起）', '#FFD700');
+    line('🍷 酒神：5秒无敌，撞到的一切都变金币（第6关起）', '#FFD700');
     y += 4;
 
     section('— 敌人 —');
