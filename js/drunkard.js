@@ -493,7 +493,7 @@ class Character {
 
   bounds() { return { x: this.x + 7, y: this.y + 4, w: this.w - 14, h: this.h - 4 }; }
 
-  draw(ctx) {
+  draw(ctx, comboMult) {
     if (this.stunFrames > 0) {
       const cx = this.x + this.w / 2;
       const gy = GROUND_Y - 16;
@@ -528,6 +528,29 @@ class Character {
       glow.addColorStop(1, 'transparent');
       ctx.fillStyle = glow;
       ctx.beginPath(); ctx.arc(this.x + this.w / 2, this.y + this.h / 2, 48, 0, Math.PI * 2); ctx.fill();
+    }
+    // combo光环：5x银色 / 10x金色
+    else if (comboMult >= 10) {
+      const pulse = 0.5 + 0.5 * Math.sin(this.sway * 2.5);
+      const glow = ctx.createRadialGradient(
+        this.x + this.w / 2, this.y + this.h / 2, 5,
+        this.x + this.w / 2, this.y + this.h / 2, 44
+      );
+      glow.addColorStop(0, `rgba(255,215,0,${0.4 * pulse})`);
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(this.x + this.w / 2, this.y + this.h / 2, 44, 0, Math.PI * 2); ctx.fill();
+    }
+    else if (comboMult >= 5) {
+      const pulse = 0.5 + 0.5 * Math.sin(this.sway * 2.5);
+      const glow = ctx.createRadialGradient(
+        this.x + this.w / 2, this.y + this.h / 2, 5,
+        this.x + this.w / 2, this.y + this.h / 2, 42
+      );
+      glow.addColorStop(0, `rgba(192,192,192,${0.4 * pulse})`);
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(this.x + this.w / 2, this.y + this.h / 2, 42, 0, Math.PI * 2); ctx.fill();
     }
     // 醉酒紫色光晕
     else if (this.slowFrames > 0) {
@@ -829,9 +852,10 @@ class DrunkardGame {
 
   // ----------------------------------------------------------
   _comboMult() {
-    if (this.combo >= 20) return 10;
-    if (this.combo >= 10) return 5;
-    if (this.combo >= 5)  return 3;
+    if (this.combo > 30)  return 10;
+    if (this.combo >= 21) return 5;
+    if (this.combo >= 11) return 3;
+    if (this.combo >= 6)  return 2;
     return 1;
   }
 
@@ -933,7 +957,6 @@ class DrunkardGame {
           }
           for (const b of this.bottles) { b.collected = true; count++; }
           this.wealth += totalValue;
-          this.combo  += Math.max(count, 1);
           this.particles.push(new Particle(item.x, item.y - 20, `🍻干杯！+¥${totalValue}`, '#FF6600'));
           if (this.wealth >= lv.price) { this.state = STATE.LEVEL_WIN; this.stateTick = 0; this.character.celebrating = true; }
         } else if (item.type === 'godmode') {
@@ -1094,7 +1117,7 @@ class DrunkardGame {
     for (const item of this.items) item.draw(ctx);
     for (const dm of this.drunkMen) dm.draw(ctx);
     for (const b of this.bottles) b.draw(ctx);
-    this.character.draw(ctx);
+    this.character.draw(ctx, this._comboMult());
     for (const p of this.particles) p.draw(ctx);
     this._drawHUD(ctx);
     this._drawTouchHints(ctx);
@@ -1330,7 +1353,7 @@ class DrunkardGame {
 
     section('— 连击系统 —');
     line('连续接住金币触发COMBO加成：');
-    line('5连×2  |  10连×3  |  20连×5', '#FFA500');
+    line('6连×2 | 11连×3 | 21连×5🪽 | 30连×10🔥', '#FFA500');
     y += 4;
 
     section('— 提示 —');
