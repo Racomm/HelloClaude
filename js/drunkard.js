@@ -211,7 +211,7 @@ class DrunkMan {
   }
 
   offScreen() {
-    return this.dir > 0 ? this.x > CW + 60 : this.x < -this.w - 60;
+    return this.dir > 0 ? this.x > CW + 10 : this.x < -this.w - 10;
   }
 
   hits(char) {
@@ -729,7 +729,7 @@ class DrunkardGame {
     // 醉汉（第3关起）
     if (lv.drunkman) {
       this.drunkmanTick++;
-      if (this.drunkmanTick >= lv.drunkmanInterval) {
+      if (this.drunkmanTick >= lv.drunkmanInterval && this.drunkMen.length === 0) {
         this.drunkmanTick = 0;
         this.drunkMen.push(new DrunkMan(Math.random() < 0.5, lv.drunkmanSpeed));
       }
