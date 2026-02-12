@@ -919,7 +919,7 @@ class DrunkardGame {
 
         if (item.isBomb) {
           if (this.character.godFrames > 0) {
-            const bv = 5; this.wealth += bv; this.combo++;
+            const bv = 10; this.wealth += bv; this.combo++;
             this.particles.push(new Particle(item.x, item.y - 20, `+¥${bv}`, '#66FFFF'));
           } else if (this.character.hurt()) {
             this.combo = 0; this.lives--;
@@ -928,7 +928,7 @@ class DrunkardGame {
           }
         } else if (item.isDrunk) {
           if (this.character.godFrames > 0) {
-            const dv = 3; this.wealth += dv; this.combo++;
+            const dv = 10; this.wealth += dv; this.combo++;
             this.particles.push(new Particle(item.x, item.y - 20, `+¥${dv}`, '#66FFFF'));
           } else {
             this.combo = 0;
@@ -948,14 +948,18 @@ class DrunkardGame {
             fi.collected = true; count++;
             if (fi.type === 'positive' && fi.def) {
               totalValue += fi.def.isHeart ? 8 : fi.def.value;
+            } else if (fi.isBomb) {
+              totalValue += 10;
+            } else if (fi.isDrunk) {
+              totalValue += 10;
             }
             this.particles.push(new Particle(fi.x, fi.y, '✨', '#FFD700'));
           }
           for (const dm of this.drunkMen) {
-            dm.hit = true; totalValue += 10; count++;
+            dm.hit = true; totalValue += lv.bottleThrow ? 40 : 20; count++;
             this.particles.push(new Particle(dm.x + dm.w / 2, dm.y, '✨', '#FFD700'));
           }
-          for (const b of this.bottles) { b.collected = true; count++; }
+          for (const b of this.bottles) { b.collected = true; totalValue += 10; count++; }
           this.wealth += totalValue;
           this.particles.push(new Particle(item.x, item.y - 20, `🍻干杯！+¥${totalValue}`, '#FF6600'));
           if (this.wealth >= lv.price) { this.state = STATE.LEVEL_WIN; this.stateTick = 0; this.character.celebrating = true; }
@@ -1014,7 +1018,7 @@ class DrunkardGame {
       if (dm.hits(this.character)) {
         dm.hit = true;
         if (this.character.godFrames > 0) {
-          const dmv = 10; this.wealth += dmv; this.combo++;
+          const dmv = lv.bottleThrow ? 40 : 20; this.wealth += dmv; this.combo++;
           this.particles.push(new Particle(dm.x + dm.w / 2, dm.y, `+¥${dmv}`, '#66FFFF'));
         } else if (this.character.hurt()) {
           this.combo = 0; this.lives--;
@@ -1034,7 +1038,7 @@ class DrunkardGame {
       if (!b.collected && b.hits(this.character)) {
         b.collected = true;
         if (this.character.godFrames > 0) {
-          const btv = 5; this.wealth += btv; this.combo++;
+          const btv = 10; this.wealth += btv; this.combo++;
           this.particles.push(new Particle(b.x, b.y - 20, `+¥${btv}`, '#66FFFF'));
         } else if (this.character.hurt()) {
           this.combo = 0; this.lives--;
