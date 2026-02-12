@@ -177,7 +177,7 @@ class SoundEngine {
     }
   }
 
-  // 四叶草
+  // 解酒药
   clover() {
     this._init();
     this._tone(1047, 0.15, 'sine', 0.25);
@@ -252,7 +252,7 @@ class SoundEngine {
     }
   }
 
-  // 酒神降临
+  // 醒酒模式
   godMode() {
     this._init();
     const notes = [523, 659, 784, 1047];
@@ -262,14 +262,14 @@ class SoundEngine {
     });
   }
 
-  // 酒神免疫弹开
+  // 醒酒免疫弹开
   godImmune() {
     this._init();
     this._tone(1200, 0.08, 'sine', 0.18);
     this._tone(1600, 0.06, 'sine', 0.12);
   }
 
-  // 酒神结束
+  // 醒酒结束
   godEnd() {
     this._init();
     this._tone(784, 0.12, 'sine', 0.18);
@@ -569,16 +569,16 @@ class FallingItem {
     const r = this.r;
     const pulse = 0.6 + 0.4 * Math.sin(this.sparkTimer * 0.1);
     const grd = ctx.createRadialGradient(0, 0, r * 0.2, 0, 0, r * 2.2);
-    grd.addColorStop(0, `rgba(255,215,0,${0.7 * pulse})`);
-    grd.addColorStop(0.5, `rgba(255,100,0,${0.3 * pulse})`);
+    grd.addColorStop(0, `rgba(100,255,100,${0.7 * pulse})`);
+    grd.addColorStop(0.5, `rgba(0,200,80,${0.3 * pulse})`);
     grd.addColorStop(1, 'transparent');
     ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(0, 0, r * 2.2, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#8B0000'; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 2.5;
+    ctx.fillStyle = '#1B5E20'; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#4CAF50'; ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
     ctx.font = `${Math.round(r * 1.1)}px serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('😈', 0, 2);
+    ctx.fillText('🍀', 0, 2);
   }
 }
 
@@ -847,40 +847,76 @@ class Character {
       ctx.save(); ctx.globalAlpha = 0.15;
     } else { ctx.save(); }
 
-    // 酒神金色光环
+    // 醒酒绿色光环
     if (this.godFrames > 0) {
       const pulse = 0.5 + 0.5 * Math.sin(this.sway * 3);
       const glow = ctx.createRadialGradient(
         this.x + this.w / 2, this.y + this.h / 2, 5,
         this.x + this.w / 2, this.y + this.h / 2, 48
       );
-      glow.addColorStop(0, `rgba(255,215,0,${0.45 * pulse})`);
+      glow.addColorStop(0, `rgba(76,175,80,${0.45 * pulse})`);
       glow.addColorStop(1, 'transparent');
       ctx.fillStyle = glow;
       ctx.beginPath(); ctx.arc(this.x + this.w / 2, this.y + this.h / 2, 48, 0, Math.PI * 2); ctx.fill();
     }
-    // combo光环：5x银色 / 10x金色
+    // combo光环：5x银色 / 10x金色（加强视觉）
     else if (comboMult >= 10) {
-      const pulse = 0.5 + 0.5 * Math.sin(this.sway * 2.5);
-      const glow = ctx.createRadialGradient(
-        this.x + this.w / 2, this.y + this.h / 2, 5,
-        this.x + this.w / 2, this.y + this.h / 2, 44
-      );
-      glow.addColorStop(0, `rgba(255,215,0,${0.4 * pulse})`);
+      const cx = this.x + this.w / 2, cy = this.y + this.h / 2;
+      const pulse = 0.5 + 0.5 * Math.sin(this.sway * 4);
+      const pulse2 = 0.5 + 0.5 * Math.cos(this.sway * 3);
+      // 外层扩散光环
+      const outer = ctx.createRadialGradient(cx, cy, 30, cx, cy, 56);
+      outer.addColorStop(0, `rgba(255,215,0,${0.15 * pulse2})`);
+      outer.addColorStop(1, 'transparent');
+      ctx.fillStyle = outer;
+      ctx.beginPath(); ctx.arc(cx, cy, 56, 0, Math.PI * 2); ctx.fill();
+      // 内层核心光环
+      const glow = ctx.createRadialGradient(cx, cy, 3, cx, cy, 46);
+      glow.addColorStop(0, `rgba(255,235,100,${0.55 * pulse})`);
+      glow.addColorStop(0.5, `rgba(255,200,0,${0.3 * pulse})`);
       glow.addColorStop(1, 'transparent');
       ctx.fillStyle = glow;
-      ctx.beginPath(); ctx.arc(this.x + this.w / 2, this.y + this.h / 2, 44, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, 46, 0, Math.PI * 2); ctx.fill();
+      // 旋转光点
+      for (let i = 0; i < 6; i++) {
+        const a = this.sway * 2 + i * Math.PI / 3;
+        const r = 36 + 6 * Math.sin(this.sway * 3 + i);
+        const sx = cx + Math.cos(a) * r, sy = cy + Math.sin(a) * r;
+        const dot = ctx.createRadialGradient(sx, sy, 0, sx, sy, 5);
+        dot.addColorStop(0, `rgba(255,255,200,${0.7 * pulse})`);
+        dot.addColorStop(1, 'transparent');
+        ctx.fillStyle = dot;
+        ctx.beginPath(); ctx.arc(sx, sy, 5, 0, Math.PI * 2); ctx.fill();
+      }
     }
     else if (comboMult >= 5) {
-      const pulse = 0.5 + 0.5 * Math.sin(this.sway * 2.5);
-      const glow = ctx.createRadialGradient(
-        this.x + this.w / 2, this.y + this.h / 2, 5,
-        this.x + this.w / 2, this.y + this.h / 2, 42
-      );
-      glow.addColorStop(0, `rgba(192,192,192,${0.4 * pulse})`);
+      const cx = this.x + this.w / 2, cy = this.y + this.h / 2;
+      const pulse = 0.5 + 0.5 * Math.sin(this.sway * 3.5);
+      const pulse2 = 0.5 + 0.5 * Math.cos(this.sway * 2.5);
+      // 外层扩散光环
+      const outer = ctx.createRadialGradient(cx, cy, 26, cx, cy, 50);
+      outer.addColorStop(0, `rgba(210,210,220,${0.12 * pulse2})`);
+      outer.addColorStop(1, 'transparent');
+      ctx.fillStyle = outer;
+      ctx.beginPath(); ctx.arc(cx, cy, 50, 0, Math.PI * 2); ctx.fill();
+      // 内层核心光环
+      const glow = ctx.createRadialGradient(cx, cy, 3, cx, cy, 44);
+      glow.addColorStop(0, `rgba(220,220,230,${0.5 * pulse})`);
+      glow.addColorStop(0.5, `rgba(192,192,200,${0.25 * pulse})`);
       glow.addColorStop(1, 'transparent');
       ctx.fillStyle = glow;
-      ctx.beginPath(); ctx.arc(this.x + this.w / 2, this.y + this.h / 2, 42, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, 44, 0, Math.PI * 2); ctx.fill();
+      // 旋转光点
+      for (let i = 0; i < 4; i++) {
+        const a = this.sway * 1.8 + i * Math.PI / 2;
+        const r = 32 + 4 * Math.sin(this.sway * 2.5 + i);
+        const sx = cx + Math.cos(a) * r, sy = cy + Math.sin(a) * r;
+        const dot = ctx.createRadialGradient(sx, sy, 0, sx, sy, 4);
+        dot.addColorStop(0, `rgba(230,230,240,${0.6 * pulse})`);
+        dot.addColorStop(1, 'transparent');
+        ctx.fillStyle = dot;
+        ctx.beginPath(); ctx.arc(sx, sy, 4, 0, Math.PI * 2); ctx.fill();
+      }
     }
     // 醉酒紫色光晕
     else if (this.slowFrames > 0) {
@@ -902,7 +938,7 @@ class Character {
 
     if (this.godFrames > 0) {
       ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('😈', 2, -this.h - 10);
+      ctx.fillText('🍀', 2, -this.h - 10);
     } else if (this.slowFrames > 0) {
       ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('🌀', 2, -this.h - 10);
@@ -1323,7 +1359,7 @@ class DrunkardGame {
           if (this.wealth >= lv.price) { this.state = STATE.LEVEL_WIN; this.stateTick = 0; this.character.celebrating = true; SFX.stopBGM(); SFX.levelWin(); }
         } else if (item.type === 'godmode') {
           this.character.godMode();
-          this.particles.push(new Particle(item.x, item.y - 20, '😈 酒神降临！5秒无敌！', '#FFD700'));
+          this.particles.push(new Particle(item.x, item.y - 20, '🍀 解酒药！醒酒5秒无敌！', '#4CAF50'));
           SFX.godMode();
         } else if (item.def.isHeart) {
           this.combo++;
@@ -1569,11 +1605,11 @@ class DrunkardGame {
     for (let i = 0; i < 3; i++) hearts += (i < this.lives) ? '❤️' : '🖤';
     ctx.fillText(hearts, CW / 2, 64);
 
-    // 状态行：酒神 > 断片 > 醉酒减速 > COMBO
+    // 状态行：醒酒 > 断片 > 醉酒减速 > COMBO
     if (isGod) {
       const secLeft = Math.ceil(this.character.godFrames / 60);
-      ctx.fillStyle = '#FFD700'; ctx.font = 'bold 12px Arial, sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(`😈 酒神模式  剩余 ${secLeft}s`, CW / 2, hudH - 3);
+      ctx.fillStyle = '#4CAF50'; ctx.font = 'bold 12px Arial, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(`🍀 醒酒模式  剩余 ${secLeft}s`, CW / 2, hudH - 3);
     } else if (isStun) {
       const secLeft = Math.ceil(this.character.stunFrames / 60);
       ctx.fillStyle = '#FF44FF'; ctx.font = 'bold 12px Arial, sans-serif'; ctx.textAlign = 'center';
@@ -1737,7 +1773,7 @@ class DrunkardGame {
 
     section('— 特殊道具 —');
     line('🍻 干杯：清除屏幕所有物品转为金币（第4关起）', '#FFA500');
-    line('😈 酒神：5秒无敌，撞到的一切都变金币（第6关起）', '#FFD700');
+    line('🍀 解酒药：5秒无敌，撞到的一切都变金币（第6关起）', '#4CAF50');
     y += 4;
 
     section('— 敌人 —');
