@@ -195,6 +195,7 @@ class Game {
         if (this.isMobile) {
             const oldWidth = this.width;
             const oldHeight = this.height;
+            const oldGroundY = this.groundY;
 
             this.setCanvasSize();
 
@@ -207,9 +208,39 @@ class Game {
                 // 更新 UI 缩放比例
                 Sprite.setUIScale(this.width);
 
-                // 重新初始化游戏对象（如果游戏已开始）
+                // 更新游戏对象尺寸，保留当前对局进度
                 if (this.dino) {
-                    this.initGameObjects();
+                    const groundDelta = this.groundY - oldGroundY;
+
+                    this.dino.groundY = this.groundY - 47;
+                    this.dino.y += groundDelta;
+                    if (this.dino.y > this.dino.groundY) {
+                        this.dino.y = this.dino.groundY;
+                        this.dino.isOnGround = true;
+                        this.dino.velocityY = 0;
+                    }
+
+                    this.ground.canvasWidth = this.width;
+                    this.ground.y = this.groundY;
+
+                    this.cloudManager.canvasWidth = this.width;
+                    this.cloudManager.canvasHeight = this.height;
+
+                    this.obstacleManager.canvasWidth = this.width;
+                    this.obstacleManager.groundY = this.groundY;
+                    this.obstacleManager.obstacles.forEach((obs) => {
+                        obs.groundY = this.groundY;
+                        obs.y += groundDelta;
+                    });
+
+                    this.coinManager.canvasWidth = this.width;
+                    this.coinManager.groundY = this.groundY;
+                    this.coinManager.coins.forEach((coin) => {
+                        coin.y += groundDelta;
+                    });
+
+                    this.nightSky.canvasWidth = this.width;
+                    this.nightSky.canvasHeight = this.height;
                 }
             }
         }

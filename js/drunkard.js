@@ -450,7 +450,11 @@ class Particle {
     this.vy = -1.8;
     this.life = 60; this.maxLife = 60;
   }
-  update() { this.y += this.vy; this.vy *= 0.96; this.life--; }
+  update(frameFactor) {
+    this.y += this.vy * frameFactor;
+    this.vy *= Math.pow(0.96, frameFactor);
+    this.life -= frameFactor;
+  }
   dead()   { return this.life <= 0; }
   draw(ctx) {
     ctx.save();
@@ -482,11 +486,11 @@ class FallingItem {
     this.sparkTimer = 0;
   }
 
-  update() {
-    this.y += this.speed;
-    this.x += this.driftX;
-    this.rot += this.rotSpd;
-    this.sparkTimer++;
+  update(frameFactor) {
+    this.y += this.speed * frameFactor;
+    this.x += this.driftX * frameFactor;
+    this.rot += this.rotSpd * frameFactor;
+    this.sparkTimer += frameFactor;
   }
 
   offScreen() { return this.y > CH + 60; }
@@ -613,11 +617,11 @@ class Bottle {
     this.collected = false;
   }
 
-  update() {
-    this.x  += this.vx;
-    this.vy += this.gravity;
-    this.y  += this.vy;
-    this.rot += this.rotSpd;
+  update(frameFactor) {
+    this.x  += this.vx * frameFactor;
+    this.vy += this.gravity * frameFactor;
+    this.y  += this.vy * frameFactor;
+    this.rot += this.rotSpd * frameFactor;
   }
 
   offScreen() { return this.y > CH + 30 || this.x < -30 || this.x > CW + 30; }
@@ -655,16 +659,21 @@ class DrunkMan {
     this.sway  = Math.random() * Math.PI * 2;
     this.walkFrame = 0;
     this.walkTick  = 0;
+    this.walkAnimTimer = 0;
     this.hit = false;
     this.hasThrown  = false;
     this.throwDelay = 60 + Math.floor(Math.random() * 90);
   }
 
-  update() {
-    this.x    += this.dir * this.speed;
-    this.sway += 0.08;
-    this.walkTick++;
-    if (this.walkTick % 7 === 0) this.walkFrame = (this.walkFrame + 1) % 4;
+  update(frameFactor) {
+    this.x    += this.dir * this.speed * frameFactor;
+    this.sway += 0.08 * frameFactor;
+    this.walkTick += frameFactor;
+    this.walkAnimTimer += frameFactor;
+    while (this.walkAnimTimer >= 7) {
+      this.walkAnimTimer -= 7;
+      this.walkFrame = (this.walkFrame + 1) % 4;
+    }
   }
 
   offScreen() {
@@ -755,7 +764,7 @@ class Character {
     this.jumping = false;
     this.sway = 0;
     this.walkFrame = 0;
-    this.walkTick = 0;
+    this.walkAnimTimer = 0;
     this.facing = 1;
     this.hurtFrames = 0;
     this.HURT_DUR  = 90;
@@ -768,18 +777,18 @@ class Character {
     this.celebrating = false;
   }
 
-  update(input) {
+  update(input, frameFactor) {
     const GRAV = 0.55;
 
     if (this.stunFrames > 0) {
       this.vx  = 0;
-      this.vy += GRAV;
-      this.y  += this.vy;
+      this.vy += GRAV * frameFactor;
+      this.y  += this.vy * frameFactor;
       if (this.y >= this.groundY) { this.y = this.groundY; this.vy = 0; this.jumping = false; }
-      this.sway += 0.09;
-      this.stunFrames--;
-      if (this.hurtFrames > 0) this.hurtFrames--;
-      if (this.godFrames > 0) this.godFrames--;
+      this.sway += 0.09 * frameFactor;
+      this.stunFrames -= frameFactor;
+      if (this.hurtFrames > 0) this.hurtFrames -= frameFactor;
+      if (this.godFrames > 0) this.godFrames -= frameFactor;
       return;
     }
 
@@ -791,28 +800,34 @@ class Character {
     if      (input.left && !input.right) { this.vx = -SPEED; this.facing = -1; }
     else if (input.right && !input.left) { this.vx = SPEED;  this.facing =  1; }
     else if (input.left && input.right)    this.vx = this.facing * SPEED;
-    else                                   this.vx *= FRIC;
+    else                                   this.vx *= Math.pow(FRIC, frameFactor);
 
     if (input.jump && !this.jumping) { this.vy = JUMP; this.jumping = true; SFX.jump(); }
 
-    this.vy += GRAV;
-    this.x  += this.vx;
-    this.y  += this.vy;
+    this.vy += GRAV * frameFactor;
+    this.x  += this.vx * frameFactor;
+    this.y  += this.vy * frameFactor;
 
     if (this.y >= this.groundY) { this.y = this.groundY; this.vy = 0; this.jumping = false; }
     if (this.x < -this.w) this.x = CW;
     if (this.x > CW)      this.x = -this.w;
 
-    this.sway += SLOW ? 0.09 : 0.045;
+    this.sway += (SLOW ? 0.09 : 0.045) * frameFactor;
 
-    this.walkTick++;
     if (!this.jumping && Math.abs(this.vx) > 0.5) {
-      if (this.walkTick % 9 === 0) this.walkFrame = (this.walkFrame + 1) % 4;
-    } else { this.walkFrame = 0; }
+      this.walkAnimTimer += frameFactor;
+      while (this.walkAnimTimer >= 9) {
+        this.walkAnimTimer -= 9;
+        this.walkFrame = (this.walkFrame + 1) % 4;
+      }
+    } else {
+      this.walkFrame = 0;
+      this.walkAnimTimer = 0;
+    }
 
-    if (this.hurtFrames > 0) this.hurtFrames--;
-    if (this.slowFrames > 0) this.slowFrames--;
-    if (this.godFrames > 0)  this.godFrames--;
+    if (this.hurtFrames > 0) this.hurtFrames -= frameFactor;
+    if (this.slowFrames > 0) this.slowFrames -= frameFactor;
+    if (this.godFrames > 0)  this.godFrames -= frameFactor;
   }
 
   hurt() {
@@ -1030,6 +1045,7 @@ class DrunkardGame {
     this._menuBtns = [];
     this._levelSelectBtns = [];
     this._levelSelectBackBtn = null;
+    this._lastTime = 0;
 
     this.input = { left: false, right: false, jump: false };
     this.stars     = this._genStars(75);
@@ -1037,7 +1053,7 @@ class DrunkardGame {
     this.character = new Character();
 
     this._bindInput();
-    requestAnimationFrame(() => this._loop());
+    requestAnimationFrame((timestamp) => this._loop(timestamp));
   }
 
   // ----------------------------------------------------------
@@ -1253,7 +1269,7 @@ class DrunkardGame {
 
   // ----------------------------------------------------------
   _comboMult() {
-    if (this.combo > 30)  return 10;
+    if (this.combo >= 30) return 10;
     if (this.combo >= 21) return 5;
     if (this.combo >= 11) return 3;
     if (this.combo >= 6)  return 2;
@@ -1284,30 +1300,33 @@ class DrunkardGame {
   }
 
   // ----------------------------------------------------------
-  _update() {
-    this.stateTick++;
+  _update(frameFactor = 1) {
+    this.stateTick += frameFactor;
     for (let i = this.particles.length - 1; i >= 0; i--) {
-      this.particles[i].update();
+      this.particles[i].update(frameFactor);
       if (this.particles[i].dead()) this.particles.splice(i, 1);
     }
-    for (const s of this.stars) s.t += 0.03;
+    for (const s of this.stars) s.t += 0.03 * frameFactor;
 
-    if (this.state === STATE.ENDING) { this._updateFireworks(); return; }
+    if (this.state === STATE.ENDING) { this._updateFireworks(frameFactor); return; }
     if (this.state !== STATE.PLAYING) return;
 
     const lv = LEVELS[this.levelIdx];
 
     // 关卡提示暂停（前120帧）
-    if (lv.hint && this.stateTick <= 120) { if (this.stateTick === 1) SFX.levelHint(); return; }
+    if (lv.hint && this.stateTick <= 120) {
+      if (this.stateTick <= frameFactor) SFX.levelHint();
+      return;
+    }
 
     const wasGod = this.character.godFrames > 0;
-    this.character.update(this.input);
+    this.character.update(this.input, frameFactor);
     if (wasGod && this.character.godFrames <= 0) SFX.godEnd();
     this.input.jump = false;
 
-    this.spawnTick++;
-    if (this.spawnTick >= lv.spawnInterval) {
-      this.spawnTick = 0;
+    this.spawnTick += frameFactor;
+    while (this.spawnTick >= lv.spawnInterval) {
+      this.spawnTick -= lv.spawnInterval;
       this._spawnItem();
       if (lv.multi && Math.random() < 0.42) this._spawnItem();
     }
@@ -1315,7 +1334,7 @@ class DrunkardGame {
     // 道具碰撞
     for (let i = this.items.length - 1; i >= 0; i--) {
       const item = this.items[i];
-      item.update();
+      item.update(frameFactor);
 
       if (!item.collected && item.hits(this.character)) {
         item.collected = true;
@@ -1411,16 +1430,16 @@ class DrunkardGame {
 
     // 醉汉
     if (lv.drunkman && this.drunkMen.length === 0) {
-      this.drunkmanTick++;
+      this.drunkmanTick += frameFactor;
       if (this.drunkmanTick >= lv.drunkmanInterval) {
-        this.drunkmanTick = 0;
+        this.drunkmanTick -= lv.drunkmanInterval;
         this.drunkMen.push(new DrunkMan(Math.random() < 0.5, lv.drunkmanSpeed));
         SFX.drunkManAppear();
       }
     }
     for (let i = this.drunkMen.length - 1; i >= 0; i--) {
       const dm = this.drunkMen[i];
-      dm.update();
+      dm.update(frameFactor);
 
       // 酒瓶投掷
       if (lv.bottleThrow && dm.shouldThrow()) {
@@ -1454,7 +1473,7 @@ class DrunkardGame {
     // 酒瓶
     for (let i = this.bottles.length - 1; i >= 0; i--) {
       const b = this.bottles[i];
-      b.update();
+      b.update(frameFactor);
       if (!b.collected && b.hits(this.character)) {
         b.collected = true;
         if (this.character.godFrames > 0) {
@@ -1473,8 +1492,9 @@ class DrunkardGame {
     }
   }
 
-  _updateFireworks() {
-    if (Math.random() < 0.14) {
+  _updateFireworks(frameFactor = 1) {
+    const spawnChance = 1 - Math.pow(1 - 0.14, frameFactor);
+    if (Math.random() < spawnChance) {
       const fx = 40 + Math.random() * (CW - 80), fy = 50 + Math.random() * CH * 0.45;
       const hue = Math.floor(Math.random() * 360);
       for (let i = 0; i < 12; i++) {
@@ -1485,7 +1505,10 @@ class DrunkardGame {
     }
     for (let i = this.fireworks.length - 1; i >= 0; i--) {
       const f = this.fireworks[i];
-      f.x += f.vx; f.y += f.vy; f.vy += 0.05; f.life--;
+      f.x += f.vx * frameFactor;
+      f.y += f.vy * frameFactor;
+      f.vy += 0.05 * frameFactor;
+      f.life -= frameFactor;
       if (f.life <= 0) this.fireworks.splice(i, 1);
     }
   }
@@ -1948,7 +1971,16 @@ class DrunkardGame {
   }
 
   // ----------------------------------------------------------
-  _loop() { this._update(); this._draw(); requestAnimationFrame(() => this._loop()); }
+  _loop(timestamp) {
+    if (!this._lastTime) this._lastTime = timestamp;
+    const delta = Math.min(timestamp - this._lastTime, 100);
+    this._lastTime = timestamp;
+    const frameFactor = delta > 0 ? (delta / (1000 / 60)) : 1;
+
+    this._update(frameFactor);
+    this._draw();
+    requestAnimationFrame((nextTs) => this._loop(nextTs));
+  }
 }
 
 // ============================================================
