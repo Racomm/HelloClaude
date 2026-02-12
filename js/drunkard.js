@@ -64,7 +64,7 @@ const POS_ITEMS = [
   { label: '¥2', value: 2,  r: 17, bg: '#FFA500', fg: '#7b3f00', weight: 22, isHeart: false, isClover: false },
   { label: '¥4', value: 4,  r: 20, bg: '#FF8C00', fg: '#5c2d00', weight: 13, isHeart: false, isClover: false },
   { label: '💰', value: 12, r: 22, bg: '#8B4513', fg: '#FFD700', weight: 6,  isHeart: false, isClover: false },
-  { label: '🍀', value: 20, r: 22, bg: '#228B22', fg: '#90EE90', weight: 3,  isHeart: false, isClover: true  },
+  { label: '💰', value: 20, r: 24, bg: '#8B6914', fg: '#FFD700', weight: 3,  isHeart: false, isClover: true  },
   { label: '❤️', value: 0,  r: 20, bg: '#CC1144', fg: '#FFFFFF', weight: 6,  isHeart: true,  isClover: false },
 ];
 
@@ -548,7 +548,7 @@ class FallingItem {
     ctx.fillStyle = 'rgba(200,150,255,0.25)';
     ctx.beginPath(); ctx.ellipse(-r * 0.28, -r * 0.3, r * 0.38, r * 0.22, -0.5, 0, Math.PI * 2); ctx.fill();
     ctx.font = `${r * 1.1}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('🍶', 0, 2);
+    ctx.fillText('🤮', 0, 2);
   }
 
   _drawCheers(ctx) {
@@ -578,7 +578,7 @@ class FallingItem {
     ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
     ctx.font = `${Math.round(r * 1.1)}px serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('🍷', 0, 2);
+    ctx.fillText('😈', 0, 2);
   }
 }
 
@@ -902,7 +902,7 @@ class Character {
 
     if (this.godFrames > 0) {
       ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('🍷', 2, -this.h - 10);
+      ctx.fillText('😈', 2, -this.h - 10);
     } else if (this.slowFrames > 0) {
       ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('🌀', 2, -this.h - 10);
@@ -1293,7 +1293,7 @@ class DrunkardGame {
               SFX.stun();
             } else {
               this.character.slowDown();
-              this.particles.push(new Particle(item.x, item.y - 20, '🍶 行动迟缓！连击↓0', '#BB66FF'));
+              this.particles.push(new Particle(item.x, item.y - 20, '🤮 行动迟缓！连击↓0', '#BB66FF'));
               SFX.drunk();
             }
           }
@@ -1323,7 +1323,7 @@ class DrunkardGame {
           if (this.wealth >= lv.price) { this.state = STATE.LEVEL_WIN; this.stateTick = 0; this.character.celebrating = true; SFX.stopBGM(); SFX.levelWin(); }
         } else if (item.type === 'godmode') {
           this.character.godMode();
-          this.particles.push(new Particle(item.x, item.y - 20, '🍷 酒神降临！5秒无敌！', '#FFD700'));
+          this.particles.push(new Particle(item.x, item.y - 20, '😈 酒神降临！5秒无敌！', '#FFD700'));
           SFX.godMode();
         } else if (item.def.isHeart) {
           this.combo++;
@@ -1348,7 +1348,7 @@ class DrunkardGame {
           else if (mult >= 2) { txt = `+¥${earned} ×2`;   color = '#FFA500'; }
           else                { txt = `+¥${earned}`;       color = '#FFD700'; }
           this.particles.push(new Particle(item.x, item.y - 20, txt, color));
-          if (mult > prevMult) SFX.comboUp(mult); else if (item.def.label === '💰') SFX.moneyBag(); else if (item.def.isClover) SFX.clover(); else SFX.coin(item.def.value);
+          if (mult > prevMult) SFX.comboUp(mult); else if (item.def.isClover) SFX.moneyBag(); else if (item.def.label === '💰') SFX.moneyBag(); else SFX.coin(item.def.value);
           if (this.wealth >= lv.price) { this.state = STATE.LEVEL_WIN; this.stateTick = 0; this.character.celebrating = true; SFX.stopBGM(); SFX.levelWin(); }
         }
       }
@@ -1573,7 +1573,7 @@ class DrunkardGame {
     if (isGod) {
       const secLeft = Math.ceil(this.character.godFrames / 60);
       ctx.fillStyle = '#FFD700'; ctx.font = 'bold 12px Arial, sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(`🍷 酒神模式  剩余 ${secLeft}s`, CW / 2, hudH - 3);
+      ctx.fillText(`😈 酒神模式  剩余 ${secLeft}s`, CW / 2, hudH - 3);
     } else if (isStun) {
       const secLeft = Math.ceil(this.character.stunFrames / 60);
       ctx.fillStyle = '#FF44FF'; ctx.font = 'bold 12px Arial, sans-serif'; ctx.textAlign = 'center';
@@ -1726,18 +1726,18 @@ class DrunkardGame {
 
     section('— 金币 —');
     line('¥1  ¥2  ¥4    基础金币');
-    line('💰 ¥12  金袋    🍀 ¥20  幸运草（第2关起）');
+    line('💰 ¥12  金袋    💰 ¥20  大钱袋（第2关起）');
     line('❤️ 回血：回复1命（满血时+¥8）（第2关起）');
     y += 4;
 
     section('— 危险道具 —');
     line('💣 炸弹：-1命，连击归零（第2关起）', '#FF6666');
-    line('🍶 醉酒：减速5秒，再中→断片3秒（第2关起）', '#BB66FF');
+    line('🤮 醉酒：减速5秒，再中→断片3秒（第2关起）', '#BB66FF');
     y += 4;
 
     section('— 特殊道具 —');
     line('🍻 干杯：清除屏幕所有物品转为金币（第4关起）', '#FFA500');
-    line('🍷 酒神：5秒无敌，撞到的一切都变金币（第6关起）', '#FFD700');
+    line('😈 酒神：5秒无敌，撞到的一切都变金币（第6关起）', '#FFD700');
     y += 4;
 
     section('— 敌人 —');
