@@ -13,43 +13,43 @@ const HUD_H = 82;
 // Level Definitions — 渐进式引入机制
 // ============================================================
 const LEVELS = [
-  { id: 1, alcohol: '青岛啤酒',     icon: '🍺', price: 30,
+  { id: 1, alcohol: '青岛啤酒',     icon: '🍺', price: 50,
     spawnInterval: 65, fallSpeed: 3.0, bombChance: 0, drunkChance: 0,
     heartEnabled: false, cloverEnabled: false,
     multi: false, drunkman: false,
     cheersChance: 0, bottleThrow: false, godModeChance: 0, hint: null },
 
-  { id: 2, alcohol: '劲酒',         icon: '🥃', price: 50,
+  { id: 2, alcohol: '牛栏山二锅头', icon: '🥃', price: 100,
     spawnInterval: 58, fallSpeed: 3.5, bombChance: 0.18, drunkChance: 0.07,
     heartEnabled: true, cloverEnabled: true,
     multi: false, drunkman: false,
     cheersChance: 0, bottleThrow: false, godModeChance: 0, hint: '酒好喝，但不要贪杯！' },
 
-  { id: 3, alcohol: '老白干',       icon: '🍶', price: 80,
+  { id: 3, alcohol: '汾酒青花',     icon: '🍶', price: 200,
     spawnInterval: 52, fallSpeed: 4.0, bombChance: 0.21, drunkChance: 0.08,
     heartEnabled: true, cloverEnabled: true,
     multi: true,  drunkman: true,  drunkmanInterval: 310, drunkmanSpeed: 1.75,
     cheersChance: 0, bottleThrow: false, godModeChance: 0, hint: '酒蒙子来啦，快躲开！' },
 
-  { id: 4, alcohol: '牛栏山二锅头', icon: '🥂', price: 150,
+  { id: 4, alcohol: '梦之蓝',       icon: '🥂', price: 500,
     spawnInterval: 46, fallSpeed: 4.5, bombChance: 0.24, drunkChance: 0.09,
     heartEnabled: true, cloverEnabled: true,
     multi: true,  drunkman: true,  drunkmanInterval: 260, drunkmanSpeed: 1.75,
     cheersChance: 0.03, bottleThrow: false, godModeChance: 0, hint: '你有我有全都有哇！' },
 
-  { id: 5, alcohol: '郎酒',         icon: '🍾', price: 300,
+  { id: 5, alcohol: '郎酒',         icon: '🍾', price: 800,
     spawnInterval: 42, fallSpeed: 5.0, bombChance: 0.27, drunkChance: 0.10,
     heartEnabled: true, cloverEnabled: true,
     multi: true,  drunkman: true,  drunkmanInterval: 210, drunkmanSpeed: 1.75,
     cheersChance: 0.03, bottleThrow: true,  godModeChance: 0, hint: '你瞅啥？？？' },
 
-  { id: 6, alcohol: '五粮液',       icon: '🏆', price: 800,
+  { id: 6, alcohol: '五粮液',       icon: '🏆', price: 1000,
     spawnInterval: 40, fallSpeed: 5.5, bombChance: 0.30, drunkChance: 0.10,
     heartEnabled: true, cloverEnabled: true,
     multi: true,  drunkman: true,  drunkmanInterval: 165, drunkmanSpeed: 1.75,
     cheersChance: 0.03, bottleThrow: true,  godModeChance: 0.02, hint: '世上无难事，只要肯喝酒！' },
 
-  { id: 7, alcohol: '飞天茅台',     icon: '✨', price: 1499,
+  { id: 7, alcohol: '茅台',         icon: '✨', price: 1499,
     spawnInterval: 36, fallSpeed: 6.0, bombChance: 0.32, drunkChance: 0.11,
     heartEnabled: true, cloverEnabled: true,
     multi: true,  drunkman: true,  drunkmanInterval: 130, drunkmanSpeed: 1.75,
@@ -102,9 +102,11 @@ function pickPosItem(lv) {
 class SoundEngine {
   constructor() {
     this.ctx = null;    // AudioContext，延迟到首次用户交互时创建
-    this.muted = false;
+    this.bgmMuted = false;
+    this.sfxMuted = false;
     this.volume = 0.5;
     this.masterGain = null;
+    this._sfxGain = null;
     // BGM 相关
     this._bgmGain = null;
     this._bgmOscs = [];
@@ -120,18 +122,26 @@ class SoundEngine {
     this.masterGain.gain.value = this.volume;
     this.masterGain.connect(this.ctx.destination);
     this._bgmGain = this.ctx.createGain();
-    this._bgmGain.gain.value = 0.18;
+    this._bgmGain.gain.value = this.bgmMuted ? 0 : 0.18;
     this._bgmGain.connect(this.masterGain);
+    this._sfxGain = this.ctx.createGain();
+    this._sfxGain.gain.value = this.sfxMuted ? 0 : 1;
+    this._sfxGain.connect(this.masterGain);
   }
 
-  toggle() {
-    this.muted = !this.muted;
-    if (this.masterGain) this.masterGain.gain.value = this.muted ? 0 : this.volume;
+  toggleBGM() {
+    this.bgmMuted = !this.bgmMuted;
+    if (this._bgmGain) this._bgmGain.gain.value = this.bgmMuted ? 0 : 0.18;
+  }
+
+  toggleSFX() {
+    this.sfxMuted = !this.sfxMuted;
+    if (this._sfxGain) this._sfxGain.gain.value = this.sfxMuted ? 0 : 1;
   }
 
   // -- 辅助：播放单音 ---
   _tone(freq, dur, type, vol, detune) {
-    if (!this.ctx) return;
+    if (!this.ctx || this.sfxMuted) return;
     const o = this.ctx.createOscillator();
     const g = this.ctx.createGain();
     o.type = type || 'sine';
@@ -139,13 +149,13 @@ class SoundEngine {
     if (detune) o.detune.value = detune;
     g.gain.setValueAtTime(vol || 0.3, this.ctx.currentTime);
     g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
-    o.connect(g); g.connect(this.masterGain);
+    o.connect(g); g.connect(this._sfxGain);
     o.start(); o.stop(this.ctx.currentTime + dur);
   }
 
   // -- 辅助：噪音脉冲 ---
   _noise(dur, vol) {
-    if (!this.ctx) return;
+    if (!this.ctx || this.sfxMuted) return;
     const sr = this.ctx.sampleRate;
     const len = sr * dur;
     const buf = this.ctx.createBuffer(1, len, sr);
@@ -155,7 +165,7 @@ class SoundEngine {
     src.buffer = buf;
     const g = this.ctx.createGain();
     g.gain.value = vol || 0.2;
-    src.connect(g); g.connect(this.masterGain);
+    src.connect(g); g.connect(this._sfxGain);
     src.start(); src.stop(this.ctx.currentTime + dur);
   }
 
@@ -212,6 +222,7 @@ class SoundEngine {
   // 断片眩晕
   stun() {
     this._init();
+    if (this.sfxMuted) return;
     const t = this.ctx.currentTime;
     const o = this.ctx.createOscillator();
     const g = this.ctx.createGain();
@@ -220,7 +231,7 @@ class SoundEngine {
     o.frequency.linearRampToValueAtTime(200, t + 0.5);
     g.gain.setValueAtTime(0.25, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-    o.connect(g); g.connect(this.masterGain);
+    o.connect(g); g.connect(this._sfxGain);
     o.start(); o.stop(t + 0.5);
   }
 
@@ -280,6 +291,7 @@ class SoundEngine {
   // 跳跃
   jump() {
     this._init();
+    if (this.sfxMuted) return;
     const t = this.ctx.currentTime;
     const o = this.ctx.createOscillator();
     const g = this.ctx.createGain();
@@ -288,7 +300,7 @@ class SoundEngine {
     o.frequency.exponentialRampToValueAtTime(700, t + 0.1);
     g.gain.setValueAtTime(0.12, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-    o.connect(g); g.connect(this.masterGain);
+    o.connect(g); g.connect(this._sfxGain);
     o.start(); o.stop(t + 0.1);
   }
 
@@ -304,6 +316,7 @@ class SoundEngine {
   // 连击中断
   comboBreak() {
     this._init();
+    if (this.sfxMuted) return;
     const t = this.ctx.currentTime;
     const o = this.ctx.createOscillator();
     const g = this.ctx.createGain();
@@ -312,7 +325,7 @@ class SoundEngine {
     o.frequency.exponentialRampToValueAtTime(150, t + 0.25);
     g.gain.setValueAtTime(0.15, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-    o.connect(g); g.connect(this.masterGain);
+    o.connect(g); g.connect(this._sfxGain);
     o.start(); o.stop(t + 0.25);
   }
 
@@ -327,6 +340,7 @@ class SoundEngine {
   // 醉汉扔酒瓶
   bottleThrow() {
     this._init();
+    if (this.sfxMuted) return;
     const t = this.ctx.currentTime;
     const o = this.ctx.createOscillator();
     const g = this.ctx.createGain();
@@ -335,7 +349,7 @@ class SoundEngine {
     o.frequency.exponentialRampToValueAtTime(800, t + 0.15);
     g.gain.setValueAtTime(0.12, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-    o.connect(g); g.connect(this.masterGain);
+    o.connect(g); g.connect(this._sfxGain);
     o.start(); o.stop(t + 0.15);
   }
 
@@ -403,7 +417,7 @@ class SoundEngine {
     // 中国风五声音阶旋律（宫商角徵羽）
     const melody = [523, 587, 659, 784, 880, 784, 659, 587, 523, 659, 784, 880, 1047, 880, 784, 659];
     this._bgmInterval = setInterval(() => {
-      if (!this.ctx || this.muted) return;
+      if (!this.ctx || this.bgmMuted) return;
       const freq = melody[this._bgmStep % melody.length];
       const t = this.ctx.currentTime;
       const o = this.ctx.createOscillator();
@@ -1083,8 +1097,9 @@ class DrunkardGame {
       if (this.state === STATE.LEVEL_SELECT && e.key >= '1' && e.key <= '7') {
         this._startFromLevel(parseInt(e.key) - 1);
       }
-      // M 键静音切换
-      if (e.key === 'm' || e.key === 'M') SFX.toggle();
+      // M 键切换背景音乐，N 键切换效果音
+      if (e.key === 'm' || e.key === 'M') SFX.toggleBGM();
+      if (e.key === 'n' || e.key === 'N') SFX.toggleSFX();
     });
     document.addEventListener('keyup', (e) => {
       if (e.key === 'ArrowLeft'  || e.key === 'a' || e.key === 'A') this.input.left  = false;
@@ -1097,11 +1112,13 @@ class DrunkardGame {
       const rect = this.canvas.getBoundingClientRect();
       const scaleX = CW / rect.width, scaleY = CH / rect.height;
 
-      // 静音按钮检测
+      // 音频按钮检测
       if (e.type === 'touchstart' && e.touches.length > 0) {
         const t0 = e.touches[0];
         const mx = (t0.clientX - rect.left) * scaleX, my = (t0.clientY - rect.top) * scaleY;
-        if (this._hitMuteBtn(mx, my)) { SFX.toggle(); return; }
+        const hit = this._hitSoundBtn(mx, my);
+        if (hit === 'bgm') { SFX.toggleBGM(); return; }
+        if (hit === 'sfx') { SFX.toggleSFX(); return; }
       }
 
       // 非游戏状态：只记录点击位置并触发 action
@@ -1486,26 +1503,43 @@ class DrunkardGame {
       if (this.state === STATE.LEVEL_WIN)  this._drawLevelWin(ctx);
       if (this.state === STATE.GAME_OVER)  this._drawGameOver(ctx);
     }
-    // 静音按钮（右上角）
-    this._drawMuteBtn(ctx);
+    // 音频控制按钮（右上角）
+    this._drawSoundBtns(ctx);
   }
 
-  _drawMuteBtn(ctx) {
-    const bx = CW - 36, by = 4, bs = 28;
+  _drawSoundBtns(ctx) {
+    const bs = 28, by = 4;
+    // SFX 按钮（最右）
+    const sfxX = CW - 36;
     ctx.save();
     ctx.globalAlpha = 0.6;
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.beginPath(); ctx.arc(bx + bs / 2, by + bs / 2, bs / 2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = SFX.sfxMuted ? 'rgba(80,0,0,0.5)' : 'rgba(0,0,0,0.5)';
+    ctx.beginPath(); ctx.arc(sfxX + bs / 2, by + bs / 2, bs / 2, 0, Math.PI * 2); ctx.fill();
     ctx.font = '15px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = '#FFFFFF';
     ctx.globalAlpha = 0.85;
-    ctx.fillText(SFX.muted ? '🔇' : '🔊', bx + bs / 2, by + bs / 2 + 1);
+    ctx.fillText(SFX.sfxMuted ? '🔇' : '🔊', sfxX + bs / 2, by + bs / 2 + 1);
+    ctx.restore();
+    // BGM 按钮（左侧）
+    const bgmX = CW - 68;
+    ctx.save();
+    ctx.globalAlpha = 0.6;
+    ctx.fillStyle = SFX.bgmMuted ? 'rgba(80,0,0,0.5)' : 'rgba(0,0,0,0.5)';
+    ctx.beginPath(); ctx.arc(bgmX + bs / 2, by + bs / 2, bs / 2, 0, Math.PI * 2); ctx.fill();
+    ctx.font = '15px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.globalAlpha = 0.85;
+    ctx.fillText(SFX.bgmMuted ? '🚫' : '🎵', bgmX + bs / 2, by + bs / 2 + 1);
     ctx.restore();
   }
 
-  _hitMuteBtn(x, y) {
-    const cx = CW - 22, cy = 18;
-    return (x - cx) * (x - cx) + (y - cy) * (y - cy) < 196;
+  _hitSoundBtn(x, y) {
+    const bs = 28, by = 4;
+    const sfxCx = CW - 36 + bs / 2, sfxCy = by + bs / 2;
+    if ((x - sfxCx) ** 2 + (y - sfxCy) ** 2 < 196) return 'sfx';
+    const bgmCx = CW - 68 + bs / 2, bgmCy = by + bs / 2;
+    if ((x - bgmCx) ** 2 + (y - bgmCy) ** 2 < 196) return 'bgm';
+    return null;
   }
 
   // ----------------------------------------------------------
