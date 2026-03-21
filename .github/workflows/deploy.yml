@@ -32,6 +32,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
+          # Publish the repository root as a static site so the homepage
+          # can link to both game projects under their own subdirectories.
           path: '.'
 
       - name: Deploy to GitHub Pages
