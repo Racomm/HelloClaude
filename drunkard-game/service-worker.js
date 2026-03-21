@@ -2,7 +2,7 @@ const CACHE_VERSION = 'v1';
 const CACHE_NAME = `drunkard-game-static-${CACHE_VERSION}`;
 const urlsToCache = [
   './',
-  './drunkard.html',
+  './index.html',
   './drunkard.webmanifest',
   './css/drunkard.css',
   './js/drunkard.js',
@@ -38,7 +38,7 @@ async function handleNavigationRequest(request) {
   } catch (error) {
     const cachedPage = await caches.match(request);
     if (cachedPage) return cachedPage;
-    return caches.match('./drunkard.html');
+    return caches.match('./index.html');
   }
 }
 

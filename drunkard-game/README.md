@@ -4,7 +4,7 @@
 
 ## 目录说明
 
-- `drunkard.html`: 游戏入口
+- `index.html`: 游戏入口
 - `css/`: 样式文件
 - `js/`: 游戏逻辑
 - `icons/`: 图标资源
@@ -17,4 +17,4 @@
 python3 -m http.server 8000
 ```
 
-然后访问 `http://localhost:8000/drunkard-game/drunkard.html`。
+然后访问 `http://localhost:8000/drunkard-game/`。
