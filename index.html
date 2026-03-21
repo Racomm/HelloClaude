@@ -1,67 +1,112 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Dino Game - Chrome 小恐龙</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Projects</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3efe6;
+      --fg: #1f2933;
+      --card: rgba(255, 255, 255, 0.78);
+      --border: rgba(31, 41, 51, 0.12);
+      --accent: #b85c38;
+      --accent-2: #2f6f62;
+    }
 
-    <!-- iPhone 优化 -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Dino Game">
-    <meta name="format-detection" content="telephone=no">
+    * {
+      box-sizing: border-box;
+    }
 
-    <!-- 防止双击缩放 -->
-    <meta name="msapplication-tap-highlight" content="no">
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--fg);
+      background:
+        radial-gradient(circle at top, rgba(184, 92, 56, 0.18), transparent 34%),
+        linear-gradient(180deg, #f7f2e8 0%, var(--bg) 100%);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
 
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#52B788">
+    main {
+      width: min(820px, 100%);
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: var(--card);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 18px 48px rgba(31, 41, 51, 0.08);
+    }
 
-    <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+    }
 
-    <link rel="stylesheet" href="css/style.css">
+    p {
+      margin: 0 0 20px;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.74);
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 1.4rem;
+    }
+
+    .card a {
+      color: inherit;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .dino a {
+      background: var(--accent-2);
+      color: #fff;
+    }
+
+    .drunkard a {
+      background: var(--accent);
+      color: #fff;
+    }
+  </style>
 </head>
 <body>
-    <!-- 屏幕方向提示 (仅移动设备竖屏时显示) -->
-    <div id="orientation-warning" style="display: none;">
-        <div class="orientation-content">
-            <div class="rotate-icon">📱 ↻</div>
-            <p>请将设备横屏以获得最佳体验</p>
-            <p class="orientation-hint">Rotate your device for better experience</p>
-        </div>
+  <main>
+    <h1>Game Projects</h1>
+    <p>当前仓库已拆分为两个独立项目，分别进入各自目录开发和部署。</p>
+    <div class="grid">
+      <section class="card dino">
+        <h2>Chrome Dino Game</h2>
+        <p>PWA 跑酷游戏，入口位于 <code>dino-game/index.html</code>。</p>
+        <a href="./dino-game/index.html">Open Dino Game</a>
+      </section>
+      <section class="card drunkard">
+        <h2>醉翁觅酒</h2>
+        <p>休闲收集游戏，入口位于 <code>drunkard-game/drunkard.html</code>。</p>
+        <a href="./drunkard-game/drunkard.html">Open Drunkard Game</a>
+      </section>
     </div>
-
-    <div class="game-container">
-        <canvas id="game-canvas"></canvas>
-        <div class="game-info">
-            <p class="desktop-controls">空格/上箭头: 跳跃 | 下箭头: 下蹲 | 点击屏幕: 开始/跳跃</p>
-            <p class="mobile-controls">右侧跳跃 | 左侧下蹲</p>
-        </div>
-    </div>
-
-    <script src="js/sprite.js"></script>
-    <script src="js/sound.js"></script>
-    <script src="js/ground.js"></script>
-    <script src="js/dino.js"></script>
-    <script src="js/obstacle.js"></script>
-    <script src="js/score.js"></script>
-    <script src="js/game.js"></script>
-
-    <!-- Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then((registration) => {
-                        console.log('Service Worker registered successfully:', registration.scope);
-                    })
-                    .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-            });
-        }
-    </script>
+  </main>
 </body>
 </html>

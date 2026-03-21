@@ -1,22 +1,18 @@
-// Service Worker for Dino/Drunkard PWA
-const CACHE_VERSION = 'v4';
+// Service Worker for Dino Game PWA
+const CACHE_VERSION = 'v5';
 const CACHE_NAME = `hello-claude-static-${CACHE_VERSION}`;
 const urlsToCache = [
   './',
   './index.html',
-  './drunkard.html',
   './manifest.json',
-  './drunkard.webmanifest',
   './css/style.css',
-  './css/drunkard.css',
   './js/sprite.js',
   './js/sound.js',
   './js/ground.js',
   './js/dino.js',
   './js/obstacle.js',
   './js/score.js',
-  './js/game.js',
-  './js/drunkard.js'
+  './js/game.js'
 ];
 
 // 安装 Service Worker 并缓存资源
