@@ -2,7 +2,7 @@
   "name": "醉翁觅酒",
   "short_name": "醉翁觅酒",
   "description": "关卡制轻度休闲游戏，扮演醉翁收集金币购酒",
-  "start_url": "drunkard.html",
+  "start_url": "./drunkard.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#050510",
